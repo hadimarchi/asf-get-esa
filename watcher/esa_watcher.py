@@ -6,9 +6,9 @@ import logging
 import os
 from utils import execute, files, options, sql
 try:
-    import psycopg2
+    from psycopg2 import IntegrityError
 except Exception:
-    import psycopg2cffi as psycopg2
+    from psycopg2cffi._impl.exceptions import IntegrityError
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(pathname)s %(asctime)s %(levelname)s %(message)s')
@@ -41,7 +41,7 @@ def insert_files_in_db(files):
     for file in files:
         try:
             esa_sql.do_esa_data_sql(options.insert_sql, {"granule": file})
-        except psycopg2._impl.exceptions.IntegrityError as e:
+        except IntegrityError as e:
             print(str(e))
 
 
