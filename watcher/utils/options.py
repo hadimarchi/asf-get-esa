@@ -36,6 +36,7 @@ class Config_and_Options():
                 self.options.num_back = int(self.config.get('fetch', 'num_back'))
             else:
                 self.options.num_back = 100
+        self.options.inc = int(self.config.get('fetch', 'group_size'))
 
         self.options.users = ','.join(str(user) for user in json.loads(self.config.get('general', 'users')))
         self.options.hyp3_db = self.db_connection_string("hyp3-db")

@@ -5,6 +5,10 @@
 import logging
 import os
 from utils import execute, files, options, sql
+try:
+    import psycopg2
+except Exception:
+    import psycopg2cffi as psycopg2
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(pathname)s %(asctime)s %(levelname)s %(message)s')
@@ -12,18 +16,19 @@ logging.basicConfig(level=logging.DEBUG,
 
 def find_candidate_files():
     logging.info("Getting products at ESA")
-    start = 0
+    file_list = []
+    for i in range(options.num_back//options.inc):
+        start = i*options.inc
+        search_url = "https://" + config.get('general', 'ESA_host') + "/apihub/search?q=S1*&rows=" + str(options.inc) + "&start=" + str(start)
+        Files.target_xml = Files.base_xml + '_' + str(start) + '_' + str(start+options.inc) + '.xml'
+        cmd = 'wget -O ' + Files.target_xml + ' --user=' + options.user + ' --password=' + options.password + ' --no-check-certificate "' + search_url + '"'
+        execute(cmd, logging, Files.target_xml, quiet=False)
 
-    search_url = "https://" + config.get('general', 'ESA_host') + "/apihub/search?q=S1*&rows=" + str(options.num_back) + "&start=" + str(start)
-    Files.target_xml = Files.base_xml + '_' + str(start) + '_' + str(start+options.num_back) + '.xml'
-    cmd = 'wget -O ' + Files.target_xml + ' --user=' + options.user + ' --password=' + options.password + ' --no-check-certificate "' + search_url + '"'
-    execute(cmd, logging, Files.target_xml, quiet=False)
-
-    try:
-        file_list = Files.parse_esa_xml()
-    except Exception as e:
-        logging.error("Error:{} \n".format(str(e)))
-        logging.error('Invalid XML!  ESA site is down?')
+        try:
+            file_list.extend(Files.parse_esa_xml())
+        except Exception as e:
+            logging.error("Error:{} \n".format(str(e)))
+            logging.error('Invalid XML!  ESA site is down?')
 
     return file_list
 
@@ -34,7 +39,10 @@ def get_requested_files():
 
 def insert_files_in_db(files):
     for file in files:
-        esa_sql.do_esa_data_sql(options.insert_sql, {"granules": file})
+        try:
+            esa_sql.do_esa_data_sql(options.insert_sql, {"granule": file})
+        except psycopg2._impl.exceptions.IntegrityError as e:
+            print(str(e))
 
 
 def filter_for_unknown(granule):  # get_status in old

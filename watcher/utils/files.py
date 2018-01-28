@@ -28,7 +28,7 @@ class Files():
 
             data_type = title[7:10]
             if "SLC" not in data_type:
-                self.log.info("Non SLC product, ignoring")
+                self.log.info("NON SLC PRODUCT: {}\nIGNORING".format(title))
                 continue
 
             footprint = product.find(attrs={"name": "footprint"}).string
