@@ -7,9 +7,10 @@ import os
 
 
 class Files():
-    def __init__(self, watcher_path):
+    def __init__(self, watcher_path, log):
         self.name = 'esa_watcher'
         self.watcher_path = watcher_path
+        self.log = log
         self.config_path = os.path.abspath(os.path.join(self.watcher_path, "config"))
         self.config = os.path.join(self.config_path, self.name + '.cfg')
         self.last_file = os.path.join(self.config_path, 'last_granule.txt')
@@ -24,7 +25,12 @@ class Files():
         for product in xml.find_all('entry'):
             id = product.find("id").string
             title = product.find("title").string
+
             data_type = title[7:10]
+            if "SLC" not in data_type:
+                self.log.info("Non SLC product, ignoring")
+                continue
+
             footprint = product.find(attrs={"name": "footprint"}).string
             products.append(dict(id=id, title=title, data_type=data_type, footprint=footprint))
 
