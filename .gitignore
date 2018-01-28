@@ -3,3 +3,5 @@ push.sh
 scrap
 config
 scrap.txt
+*.pyc
+*/xml*
