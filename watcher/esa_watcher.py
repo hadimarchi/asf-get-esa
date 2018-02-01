@@ -19,7 +19,7 @@ def find_candidate_files():
     file_list = []
     for i in range(options.num_back//options.inc):
         start = i*options.inc
-        search_url = "https://" + config.get('general', 'ESA_host') + "/apihub/search?q=S1*&rows=" + str(options.inc) + "&start=" + str(start)
+        search_url = options.esa_host + "/apihub/search?q=S1*&rows=" + str(options.inc) + "&start=" + str(start)
         Files.target_xml = Files.base_xml + '_' + str(start) + '_' + str(start+options.inc) + '.xml'
         cmd = 'wget -O ' + Files.target_xml + ' --user=' + options.user + ' --password=' + options.password + ' --no-check-certificate "' + search_url + '"'
         execute(cmd, logging, Files.target_xml, quiet=False)
@@ -40,12 +40,14 @@ def get_requested_files():
 def insert_files_in_db(files):
     for file in files:
         try:
-            esa_sql.do_esa_data_sql(options.insert_sql, {"granule": file})
+            esa_sql.do_esa_data_sql(options.insert_sql, {"granule": file[0],
+                                                         "url": file[1]},)
         except IntegrityError as e:
             print(str(e))
 
 
 def filter_for_unknown(granule):  # get_status in old
+    return True
     query = esa_sql.do_pg_sql(options.find_granules_in_pg_sql, {'name': granule})
     if len(query) > 0:
         logging.info("Status: {} {}".format(granule, "AVAILABLE"))
@@ -88,7 +90,7 @@ if __name__ == "__main__":
     for file in candidate_file_list:
         if filter_for_unknown(file.get("title")):
             if intersects_subs(file.get("footprint")):
-                wanted_files.append(file.get("title"))
+                wanted_files.append((file.get("title"), file.get("url")))
 
     insert_files_in_db(wanted_files)
     esa_sql.close_connections()

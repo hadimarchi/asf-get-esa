@@ -5,3 +5,7 @@
 
 def get_granules():
     pass
+
+
+def download_granules():
+    pass

@@ -14,11 +14,11 @@ class Esa_Sql():
 
     def get_connections(self, options):
         self.hyp3_db_connection = psycopg2.connect(options.hyp3_db)
-        self.pg_db_connection = psycopg2.connect(options.pg_db)
+        # self.pg_db_connection = psycopg2.connect(options.pg_db)
         self.esa_data_db_connection = psycopg2.connect(options.esa_data_db)
 
         self.hyp3_db_connection.autocommit = True
-        self.pg_db_connection.autocommit = True
+        # self.pg_db_connection.autocommit = True
         self.esa_data_db_connection.autocommit = True
 
     def do_hyp3_sql(self, sql, vals):
@@ -32,7 +32,7 @@ class Esa_Sql():
 
     def close_connections(self):
         self.hyp3_db_connection.close()
-        self.pg_db_connection.close()
+        # self.pg_db_connection.close()
         self.esa_data_db_connection.close()
 
 

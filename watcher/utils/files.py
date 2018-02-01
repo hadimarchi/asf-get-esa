@@ -1,6 +1,6 @@
 # files.py
 # Author: Hal DiMarchi
-# File path setup for watcher
+# File path and parsing setup for watcher
 
 from bs4 import BeautifulSoup
 import os
@@ -32,6 +32,13 @@ class Files():
                 continue
 
             footprint = product.find(attrs={"name": "footprint"}).string
-            products.append(dict(id=id, title=title, data_type=data_type, footprint=footprint))
+            url = filter_url(product.find_all("link"))["href"]
+            products.append(dict(id=id, title=title, data_type=data_type, footprint=footprint, url=url))
 
         return products
+
+
+def filter_url(links):
+    for link in links:
+        if link.has_attr("href") and not link.has_attr("rel"):
+            return link
