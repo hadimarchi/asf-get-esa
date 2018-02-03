@@ -14,3 +14,8 @@ def execute(cmd, log, expected=None, quiet=False):
     return_val = pipe.returncode
     log.debug('return value was: {}'.format(return_val))
     return output
+
+
+def get_product_from_granule_url(url):
+    url = url.replace("https://scihub.copernicus.eu/apihub/odata/v1/Products('", '')
+    return url.replace("')/$value", '')
