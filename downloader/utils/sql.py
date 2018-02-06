@@ -27,9 +27,14 @@ class Esa_Data_Sql():
         else:
             do_sql(self.esa_data_db_connection,
                    self.options.update_downloaded_for_esa_data,
-                   {'granule': granule})
+                   {'granule': granule, 'true_false': True})
 
         return granule, url
+
+    def alert_esa_data_of_failed_download(self, granule):
+        do_sql(self.esa_data_db_connection,
+               self.options.update_downloaded_for_esa_data,
+               {'granule': granule, 'true_false': False})
 
     def close_connections(self):
         self.esa_data_db_connection.close()

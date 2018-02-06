@@ -12,26 +12,20 @@ logging.basicConfig(level=logging.DEBUG,
 
 def get_granule_from_esa_data():
     granule, url = sql.get_granule()
-    sql.close_connections()
     return granule, url
-
-
-def download_granule(granule, url):
-    downloader.download_granule(url, granule)
 
 
 if __name__ == "__main__":
     logging.info("Spinning up")
-    downloader = downloader.Downloader(os.path.dirname(__file__), logging)
     options = options.Options(os.path.dirname(__file__))
+    sql = sql.Esa_Data_Sql(options)
+    downloader = downloader.Downloader(os.path.dirname(__file__), logging, sql)
 
     downloader.get_options(options)
     downloader.get_sentinel_api()
     downloader.get_download_path()
 
-    sql = sql.Esa_Data_Sql(options)
-
     granule, url = get_granule_from_esa_data()
 
-    download_granule(granule, url)
+    downloader.download_granule(url=url, granule=granule)
     logging.info("Done")

@@ -5,6 +5,8 @@
 import logging
 import os
 from utils import execute, files, options, sql
+from sentinelsat.sentinel import SentinelAPI
+
 try:
     from psycopg2 import IntegrityError
 except Exception:
@@ -16,21 +18,11 @@ logging.basicConfig(level=logging.DEBUG,
 
 def find_candidate_files():
     logging.info("Getting products at ESA")
-    file_list = []
-    for i in range(options.num_back//options.inc):
-        start = i*options.inc
-        search_url = options.esa_host + "/apihub/search?q=S1*&rows=" + str(options.inc) + "&start=" + str(start)
-        Files.target_xml = Files.base_xml + '_' + str(start) + '_' + str(start+options.inc) + '.xml'
-        cmd = 'wget -O ' + Files.target_xml + ' --user=' + options.user + ' --password=' + options.password + ' --no-check-certificate "' + search_url + '"'
-        execute(cmd, logging, Files.target_xml, quiet=False)
 
-        try:
-            file_list.extend(Files.parse_esa_xml())
-        except Exception as e:
-            logging.error("Error:{} \n".format(str(e)))
-            logging.error('Invalid XML!  ESA site is down?')
+    api = SentinelAPI(options.user, options.password)
+    products = api.query(limit=options.num_back, producttype="SLC")
 
-    return file_list
+    return products
 
 
 def get_requested_files():
@@ -44,6 +36,8 @@ def insert_files_in_db(files):
                                                          "url": file[1]},)
         except IntegrityError as e:
             print(str(e))
+        else:
+            print("{} inserted".format(file[0]))
 
 
 def filter_for_unknown(granule):  # get_status in old
@@ -86,11 +80,12 @@ if __name__ == "__main__":
     wanted_files = []
 
     if not get_requested_files():
-        candidate_file_list = find_candidate_files()
-    for file in candidate_file_list:
-        if filter_for_unknown(file.get("title")):
-            if intersects_subs(file.get("footprint")):
-                wanted_files.append((file.get("title"), file.get("url")))
+        candidate_products = find_candidate_files()
+    for product in candidate_products:
+        if filter_for_unknown(candidate_products[product]['identifier']):
+            if intersects_subs(candidate_products[product]['footprint']):
+                wanted_files.append((candidate_products[product]['identifier'],
+                                    candidate_products[product]['link_icon']))
 
     insert_files_in_db(wanted_files)
     esa_sql.close_connections()

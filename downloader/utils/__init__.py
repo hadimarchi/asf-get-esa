@@ -18,4 +18,5 @@ def execute(cmd, log, expected=None, quiet=False):
 
 def get_product_from_granule_url(url):
     url = url.replace("https://scihub.copernicus.eu/apihub/odata/v1/Products('", '')
+    url = url.replace("/Products('Quicklook')", '')
     return url.replace("')/$value", '')

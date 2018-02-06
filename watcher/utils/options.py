@@ -37,7 +37,6 @@ class Config_and_Options():
             else:
                 self.options.num_back = 100
         self.options.inc = int(self.config.get('fetch', 'group_size'))
-        self.options.esa_host = self.config.get('general', 'ESA_host')
         self.options.users = ','.join(str(user) for user in json.loads(self.config.get('general', 'users')))
         self.options.hyp3_db = self.db_connection_string("hyp3-db")
         self.options.pg_db = self.db_connection_string("pgsql")
