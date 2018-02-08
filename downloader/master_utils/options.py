@@ -17,9 +17,14 @@ class Options:
         self.get_options()
 
     def get_options(self):
+        self.user = self.config.get('general', 'username')
+        self.password = self.config.get('general', 'password')
+        self.esa_host = self.config.get('general', 'ESA_host')
         self.esa_data_db = self.db_connection_string('esa_data')
         self.get_granule_from_esa_data = self.config.get('sql', 'get_granule')
         self.update_downloaded_for_esa_data = self.config.get('sql', 'download')
+        self.maximum_number_of_processes = self.config.get('multiprocessing',
+                                                           'max_processes')
 
     def db_connection_string(self, db):
         connection_string = \

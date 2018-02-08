@@ -2,6 +2,7 @@
 # wrapper around collection of children
 # represented as processes
 import esa_child_downloader as downloader
+from utils.error import DownloadError
 from multiprocessing import Pool, Process
 
 
@@ -19,5 +20,5 @@ class Children:
     def remove_child(self):
         pass
 
-    def run_child(self):
+    def run_child(self, child):
         downloader.download()

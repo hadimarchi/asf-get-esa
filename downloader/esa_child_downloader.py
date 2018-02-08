@@ -4,32 +4,25 @@
 
 import logging
 import os
-from utils import downloader, options, sql
+from utils import downloader, options
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(pathname)s %(asctime)s %(levelname)s %(message)s')
 
 
-def get_granule_from_esa_data(sql):
-    granule, url = sql.get_granule()
-    return granule, url
 
-
-def download():
+def download(product, granule):
     logging.info("Spinning up")
     child_options = options.Options(os.path.dirname(__file__))
-    child_sql = sql.Esa_Data_Sql(child_options)
     child_downloader = downloader.Downloader(os.path.dirname(__file__),
-                                             logging, child_sql
+                                             logging
                                              )
 
     child_downloader.get_options(child_options)
     child_downloader.get_sentinel_api()
     child_downloader.get_download_path()
 
-    granule, url = get_granule_from_esa_data(child_sql)
-
-    child_downloader.download_granule(url=url, granule=granule)
+    child_downloader.download_granule(product=product, granule=granule)
     logging.info("Done")
 
 
