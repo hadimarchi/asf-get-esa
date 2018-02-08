@@ -13,6 +13,7 @@ class Downloader():
         self.name = 'esa_downloader'
         self.downloader_path = downloader_path
         self.sql = sql
+        self.log = log
 
     def get_options(self, options):
         self.options = options
@@ -34,7 +35,8 @@ class Downloader():
 
     def download_granule(self, url, granule):
         product = get_product_from_granule_url(url)
-        print(product)
+        self.log.info("Downloading product: {} corresponding to granule: {}"
+                      .format(product, granule))
         try:
             self.api.download(product, directory_path=self.download_path)
 
