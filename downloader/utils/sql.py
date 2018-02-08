@@ -4,7 +4,7 @@
 
 try:
     import psycopg2
-except Exception:
+except ImportError:
     import psycopg2cffi as psycopg2
 
 
