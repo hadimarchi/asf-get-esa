@@ -23,8 +23,10 @@ class Options:
         self.esa_data_db = self.db_connection_string('esa_data')
         self.get_granule_from_esa_data = self.config.get('sql', 'get_granule')
         self.update_downloaded_for_esa_data = self.config.get('sql', 'download')
-        self.maximum_number_of_processes = self.config.get('multiprocessing',
-                                                           'max_processes')
+        self.max_processes = int(self.config.get('multiprocessing',
+                                                 'max_processes'))
+        self.run = bool(self.config.get('general',
+                                        'run'))
 
     def db_connection_string(self, db):
         connection_string = \

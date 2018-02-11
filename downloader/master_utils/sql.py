@@ -21,15 +21,22 @@ class Esa_Data_Sql:
         try:
             products = do_sql(self.esa_data_db_connection,
                               self.options.get_granule_from_esa_data)
-            print(products)
         except Exception as e:
-            print(str(e))
+            print(str(e))  # need retries and handlers for different errors
 
         else:
-            pass
-            # alert db
+            do_multiple_updates(self.esa_data_db_connection,
+                                True,
+                                self.options.update_downloaded_for_esa_data,
+                                products)
 
         return products
+
+    def cleanup(self, failed_product):
+        do_sql(self.esa_data_db_connection,
+               False,
+               {'granule': failed_product}
+               )
 
 
 def do_sql(db_conn, sql, vals=None):
@@ -42,4 +49,19 @@ def do_sql(db_conn, sql, vals=None):
         return ""
 
     cur.close()
+    return res
+
+
+def do_multiple_updates(db_conn, true_false, sql, products):
+    cur = db_conn.cursor()
+    for product in range(len(products)):
+        vals = {'true_false': true_false,
+                'granule': products[product][0]}
+        print(vals)
+        cur.execute(sql, vals)
+    try:
+        res = cur.fetchall()
+    except:
+        cur.close()
+        return ""
     return res
