@@ -6,3 +6,4 @@ config
 scrap.txt
 *.pyc
 */xml*
+*.log

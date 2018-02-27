@@ -3,6 +3,7 @@
 # Author: Hal DiMarchi
 
 from configparser import SafeConfigParser
+import json
 import os
 
 
@@ -17,7 +18,6 @@ class Options:
         self.get_options()
 
     def get_options(self):
-        self.user = self.config.get('general', 'username')
         self.password = self.config.get('general', 'password')
         self.esa_host = self.config.get('general', 'ESA_host')
         self.esa_data_db = self.db_connection_string('esa_data')
@@ -27,6 +27,8 @@ class Options:
                                                  'max_processes'))
         self.run = bool(self.config.get('general',
                                         'run'))
+
+        self.usernames = json.loads(self.config.get("users", "usernames"))
 
     def db_connection_string(self, db):
         connection_string = \

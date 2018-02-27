@@ -4,7 +4,7 @@
 
 import os
 from sentinelsat.sentinel import SentinelAPI
-from .error import DownloadError
+# from .error import DownloadError
 
 
 class Downloader():
@@ -37,7 +37,6 @@ class Downloader():
         try:
             self.api.download(product, directory_path=self.download_path)
 
-        except (Exception, KeyboardInterrupt) as e:
-            print("Error while downloading")
+        except (Exception, BaseException, KeyboardInterrupt) as e:
             print(str(e))
-            raise DownloadError(granule)
+            raise Exception

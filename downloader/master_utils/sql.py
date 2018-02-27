@@ -2,6 +2,8 @@
 # class for connecting with esa_data
 # Author: Hal DiMarchi
 
+from . import logging as log
+
 try:
     import psycopg2
 except ImportError:
@@ -32,11 +34,12 @@ class Esa_Data_Sql:
 
         return products
 
-    def cleanup(self, failed_product):
-        do_sql(self.esa_data_db_connection,
-               False,
-               {'granule': failed_product}
-               )
+    def cleanup(self, failed_products):
+        log.debug(" restoring granules: {}".format(failed_products))
+        do_multiple_updates(self.esa_data_db_connection,
+                            False,
+                            self.options.update_downloaded_for_esa_data,
+                            failed_products)
 
 
 def do_sql(db_conn, sql, vals=None):
@@ -44,7 +47,7 @@ def do_sql(db_conn, sql, vals=None):
     cur.execute(sql, vals) if vals else cur.execute(sql)
     try:
         res = cur.fetchall()
-    except:
+    except (BaseException, Exception, KeyboardInterrupt):
         cur.close()
         return ""
 
