@@ -25,10 +25,17 @@ class Options:
         self.update_downloaded_for_esa_data = self.config.get('sql', 'download')
         self.max_processes = int(self.config.get('multiprocessing',
                                                  'max_processes'))
-        self.run = bool(self.config.get('general',
-                                        'run'))
+        self.wait_period = int(self.config.get('general', 'wait_period'))
+        self.run = bool(self.config.get('general', 'run'))
 
         self.usernames = json.loads(self.config.get("users", "usernames"))
+
+    def update_max_processes_and_run(self):
+        self.config.read(self.config_file)
+        self.max_processes = int(self.config.get('multiprocessing',
+                                                 'max_processes'))
+        self.run = bool(self.config.get('general',
+                                        'run'))
 
     def db_connection_string(self, db):
         connection_string = \

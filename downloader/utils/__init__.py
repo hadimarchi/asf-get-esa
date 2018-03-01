@@ -3,6 +3,10 @@
 # utils package for esa_downloader script
 
 import subprocess
+import logging
+
+log = logging.basicConfig(level=logging.DEBUG,
+                          format='%(pathname)s %(asctime)s %(levelname)s %(message)s')
 
 
 def execute(cmd, log, expected=None, quiet=False):

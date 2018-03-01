@@ -1,12 +1,8 @@
 # esa_downloader
 # Author: Hal DiMarchi
 # Downloads high interest products from ESA as determined by esa_watcher.py
-import logging
 import os
-from utils import downloader, options, error
-
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(pathname)s %(asctime)s %(levelname)s %(message)s')
+from utils import downloader, options, error, log
 
 
 def download(granule_username):
@@ -14,10 +10,10 @@ def download(granule_username):
         granule = granule_username[0][0]
         product = granule_username[0][1]
         username = granule_username[1]
-        logging.info("Spinning up")
+        log.info("Spinning up")
         child_options = options.Options(os.path.dirname(__file__), username)
         child_downloader = downloader.Downloader(os.path.dirname(__file__),
-                                                 logging
+                                                 log
                                                  )
 
         child_downloader.get_options(child_options)
@@ -25,8 +21,8 @@ def download(granule_username):
         child_downloader.get_download_path()
 
         child_downloader.download_granule(product=product, granule=granule)
-        logging.info("Done")
+        log.info("Done")
 
     except (Exception, KeyboardInterrupt, BaseException, SystemExit):
-        logging.error("Downloading of {} Failed, returning".format(granule))
+        log.error("Downloading of {} Failed, returning".format(granule))
         raise error.DownloadError(granule)

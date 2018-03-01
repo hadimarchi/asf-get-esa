@@ -22,20 +22,14 @@ class Children:
         self.failed_granules = []
         self.usernames = usernames
         self.alive = True
-        pass
 
-    def add_child(self):
-        pass
+    def cleanup(self, value):
+        while str(value) not in self.failed_granules:
+            with suppress(Exception, BaseException, KeyboardInterrupt):
+                log.error("Failed Granule: {}".format(str(value)))
+                self.failed_granules.append(str(value))
 
-    def check_children(self):
-        pass
-
-    def remove_child(self):
-        pass
-
-    def run(self, products):
-        process_count = len(products)
-        granules_usernames = [(products[i], self.usernames[i]) for i in range(process_count)]
+    def get_children(self, process_count, granules_usernames):
         self.children = Pool(processes=process_count,
                              maxtasksperchild=1)
         self.children.map_async(
@@ -43,27 +37,32 @@ class Children:
                                 error_callback=self.cleanup
                                 )
         self.children.close()
+
+    def join_children(self):
         while True:
             with suppress(Exception, BaseException, KeyboardInterrupt):
                 self.children.join()
                 break
 
-        log.debug("pool has finished")
-        while True:
-            with suppress(Exception, BaseException, KeyboardInterrupt):
-                print(self.failed_granules)
-                self.accomplised_processes += len(products)
-                log.debug(" run through {}".format(self.accomplised_processes))
-                self.check_done()
-                return self.failed_granules
-
-    def cleanup(self, value):
-        while str(value) not in self.failed_granules:
-            with suppress(Exception, BaseException, KeyboardInterrupt):
-                print("I am {}".format(str(value)))
-                self.failed_granules.append(str(value))
-                print(self.failed_granules)
-
     def check_done(self):
         if self.accomplised_processes >= self.submitted_processes:
             self.alive = False
+
+    def conclude_run(self, process_count):
+        while True:
+            with suppress(Exception, BaseException, KeyboardInterrupt):
+                self.accomplised_processes += process_count
+                log.debug("Run through {} products.".format(self.accomplised_processes))
+                self.check_done()
+
+    def run(self, products):
+        process_count = len(products)
+        granules_usernames = [(products[i], self.usernames[i]) for i in range(process_count)]
+
+        self.get_children(process_count, granules_usernames)
+        self.join_children()
+
+        log.debug("Process pool has finished")
+        self.conclude_run(len(products))
+
+        return self.failed_granules

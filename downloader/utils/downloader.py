@@ -4,14 +4,13 @@
 
 import os
 from sentinelsat.sentinel import SentinelAPI
-# from .error import DownloadError
+from . import log
 
 
 class Downloader():
-    def __init__(self, downloader_path, log):
+    def __init__(self, downloader_path):
         self.name = 'esa_downloader'
         self.downloader_path = downloader_path
-        self.log = log
 
     def get_options(self, options):
         self.options = options
@@ -32,11 +31,10 @@ class Downloader():
                                self.options.esa_host)
 
     def download_granule(self, product, granule):
-        self.log.info("Downloading product: {} corresponding to granule: {}"
-                      .format(product, granule))
+        log.info("Downloading product: {} corresponding to granule: {}"
+                 .format(product, granule))
         try:
             self.api.download(product, directory_path=self.download_path)
 
         except (Exception, BaseException, KeyboardInterrupt) as e:
             print(str(e))
-            raise Exception
