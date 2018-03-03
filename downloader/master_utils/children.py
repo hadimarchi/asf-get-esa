@@ -30,6 +30,7 @@ class Children:
                 self.failed_granules.append(str(value))
 
     def get_children(self, process_count, granules_usernames):
+        log.debug("granule/username pairs again: {}".format(granules_usernames))
         self.children = Pool(processes=process_count,
                              maxtasksperchild=1)
         self.children.map_async(
@@ -54,11 +55,12 @@ class Children:
                 self.accomplised_processes += process_count
                 log.debug("Run through {} products.".format(self.accomplised_processes))
                 self.check_done()
+                break
 
     def run(self, products):
         process_count = len(products)
         granules_usernames = [(products[i], self.usernames[i]) for i in range(process_count)]
-
+        log.debug("granule/username pairs: {}".format(granules_usernames))
         self.get_children(process_count, granules_usernames)
         self.join_children()
 

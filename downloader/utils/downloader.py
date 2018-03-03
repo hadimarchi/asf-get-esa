@@ -4,7 +4,7 @@
 
 import os
 from sentinelsat.sentinel import SentinelAPI
-from . import log
+from . import logging as log
 
 
 class Downloader():

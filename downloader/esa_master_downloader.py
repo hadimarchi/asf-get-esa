@@ -8,4 +8,5 @@ from master_utils import master
 
 if __name__ == '__main__':
     master = master.Master(os.path.dirname(__file__))
-    master.idle()
+    master.get_products_from_db()
+    master.run()
