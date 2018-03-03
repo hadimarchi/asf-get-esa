@@ -46,7 +46,7 @@ class Master:
 
     def run(self):
         self.failed_products = deepcopy(self.products)
-        log.debug("Products to get: {}".format(self.failed_products))
+        log.info("Products to get: {}".format(self.failed_products))
         while self.products:
             with suppress(Exception, BaseException, KeyboardInterrupt):
                 count = min(self.options.max_processes,
@@ -57,12 +57,14 @@ class Master:
                 difference = (count_products - (self.children.run(count_products)))
                 self.failed_products -= difference
 
-        log.debug("Products to be reset in db: {}".format(self.failed_products))
+        log.info("Products to be reset in db: {}".format(self.failed_products))
         self.reset_products_not_downloaded()
 
     def idle(self):
         while self.options.run:
             with suppress(Exception, BaseException, KeyboardInterrupt):
+                log.info("Spinning up download cycle")
                 self.get_products_from_db()
                 self.run() if self.products else wait(self.options.wait_period)
                 self.options.update_max_processes_and_run()
+        log.info("Exiting")

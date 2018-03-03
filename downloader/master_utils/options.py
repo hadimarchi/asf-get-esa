@@ -2,6 +2,7 @@
 # class for wrapping options for esa_master_downloader script
 # Author: Hal DiMarchi
 
+from . import logging as log
 from configparser import SafeConfigParser
 import json
 import os
@@ -31,11 +32,12 @@ class Options:
         self.usernames = json.loads(self.config.get("users", "usernames"))
 
     def update_max_processes_and_run(self):
+        log.info("Updating max processes, and run")
         self.config.read(self.config_file)
         self.max_processes = int(self.config.get('multiprocessing',
                                                  'max_processes'))
-        self.run = bool(self.config.get('general',
-                                        'run'))
+        self.run = int(self.config.get('general', 'run'))
+        log.info("Run is now {}".format(self.run))
 
     def db_connection_string(self, db):
         connection_string = \

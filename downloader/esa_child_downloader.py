@@ -10,7 +10,7 @@ def download(granule_username):
         granule = granule_username[0][0]
         product = granule_username[0][1]
         username = granule_username[1]
-        log.info("Spinning up")
+        log.info("Spinning up single download")
         child_options = options.Options(os.path.dirname(__file__), username)
         child_downloader = downloader.Downloader(os.path.dirname(__file__))
 
