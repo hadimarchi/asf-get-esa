@@ -1,1 +1,9 @@
+old-esa-playground
+downloader/download
 push.sh
+scrap
+config
+scrap.txt
+*.pyc
+*/xml*
+*.log
