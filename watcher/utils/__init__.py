@@ -2,7 +2,11 @@
 # Author: Hal DiMarchi
 # utils package for esa_watcher script
 
+import logging
 import subprocess
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(pathname)s %(asctime)s %(levelname)s %(message)s')
 
 
 def execute(cmd, log, expected=None, quiet=False):
@@ -14,3 +18,8 @@ def execute(cmd, log, expected=None, quiet=False):
     return_val = pipe.returncode
     log.debug('return value was: {}'.format(return_val))
     return output
+
+
+def get_product_dict(product):
+    return {'granule': product[0],
+            'url': product[1]}

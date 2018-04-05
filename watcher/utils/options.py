@@ -1,50 +1,35 @@
 # options.py
 # Author: Hal DiMarchi
 # sets up options for watcher
+from . import logging as log
 
 import json
-from optparse import OptionParser
+import os
 from configparser import SafeConfigParser
 
 
-class Config_and_Options():
-    def __init__(self, config_file):
+class Options:
+    def __init__(self, watcher_path):
+        self.name = "esa_watcher"
+        self.config_path = os.path.abspath(os.path.join(watcher_path, "config"))
+        self.config_file = os.path.join(self.config_path, self.name + '.cfg')
         self.config = SafeConfigParser()
-        self.config.read(config_file)
-        parser = OptionParser()
-        parser.add_option(
-            "-u", "--user", action="store", dest="user", help="Account name for the ESA data hub"
-        )
-        parser.add_option(
-            "-p", "--password", action="store", dest="password", help="Password for the ESA data hub account"
-        )
-        parser.add_option(
-            "-n", "--num-back", action="store", type="int", dest="num_back", help="How many to check at ESA"
-        )
-        (self.options, args) = parser.parse_args()
-
+        self.config.read(self.config_file)
         self.get_options()
 
     def get_options(self):
-        if self.options.user is None:
-            self.options.user = self.config.get('general', 'username')
-        if self.options.password is None:
-            self.options.password = self.config.get('general', 'password')
+        self.user = self.config.get('general', 'username')
+        self.password = self.config.get('general', 'password')
+        self.num_back = int(self.config.get('fetch', 'num_back'))
+        self.inc = int(self.config.get('fetch', 'group_size'))
+        self.users = ','.join(str(user) for user in json.loads(self.config.get('general', 'users')))
+        self.hyp3_db = self.db_connection_string("hyp3-db")
+        self.pg_db = self.db_connection_string("pgsql")
+        self.esa_data_db = self.db_connection_string("esa_data")
 
-        if self.options.num_back is None:
-            if self.config.has_option('fetch', 'num_back'):
-                self.options.num_back = int(self.config.get('fetch', 'num_back'))
-            else:
-                self.options.num_back = 100
-        self.options.inc = int(self.config.get('fetch', 'group_size'))
-        self.options.users = ','.join(str(user) for user in json.loads(self.config.get('general', 'users')))
-        self.options.hyp3_db = self.db_connection_string("hyp3-db")
-        self.options.pg_db = self.db_connection_string("pgsql")
-        self.options.esa_data_db = self.db_connection_string("esa_data")
-
-        self.options.find_granules_in_pg_sql = self.config.get('sql', 'pg_db_sql')
-        self.options.intersects_hyp3_subs_sql = self.config.get('sql', 'intersects_subs_sql')
-        self.options.insert_sql = self.config.get('sql', 'insert_sql')
+        self.find_granules_in_pg_sql = self.config.get('sql', 'pg_db_sql')
+        self.intersects_hyp3_subs_sql = self.config.get('sql', 'intersects_subs_sql')
+        self.insert_sql = self.config.get('sql', 'insert_sql')
 
     def db_connection_string(self, db):
         connection_string = \
@@ -52,5 +37,6 @@ class Config_and_Options():
             "dbname='" + self.config.get(db, 'db') + "' " + \
             "user='" + self.config.get(db, 'user') + "' " + \
             "password='" + self.config.get(db, 'pass') + "'"
+        log.info("Connection string was {}".format(connection_string))
 
         return connection_string

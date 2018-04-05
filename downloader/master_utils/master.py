@@ -43,6 +43,7 @@ class Master:
             else:
                 log.debug("Reset failed_products.")
                 self.failed_products = []
+                self.sql.close_connections()
 
     def run(self):
         self.failed_products = deepcopy(self.products)
@@ -54,8 +55,11 @@ class Master:
                             len(self.options.usernames))
                 count_products = self.products[0:count]
                 del self.products[0:count]
-                difference = (count_products - (self.children.run(count_products)))
-                self.failed_products -= difference
+                successful_products = (count_products - (self.children.run(count_products)))
+                self.failed_products -= successful_products
+                self.options.update_max_processes_and_run()
+                if not self.options.run:
+                    break
 
         log.info("Products to be reset in db: {}".format(self.failed_products))
         self.reset_products_not_downloaded()
@@ -66,5 +70,4 @@ class Master:
                 log.info("Spinning up download cycle")
                 self.get_products_from_db()
                 self.run() if self.products else wait(self.options.wait_period)
-                self.options.update_max_processes_and_run()
         log.info("Exiting")
