@@ -27,7 +27,7 @@ class Options:
         self.max_processes = int(self.config.get('multiprocessing',
                                                  'max_processes'))
         self.wait_period = int(self.config.get('general', 'wait_period'))
-        self.run = bool(self.config.get('general', 'run'))
+        self.run = int(self.config.get('general', 'run'))
 
         self.usernames = json.loads(self.config.get("users", "usernames"))
 

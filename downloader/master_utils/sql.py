@@ -19,6 +19,9 @@ class Esa_Data_Sql:
         self.esa_data_db_connection = psycopg2.connect(self.options.esa_data_db)
         self.esa_data_db_connection.autocommit = True
 
+    def close_connections(self):
+        self.esa_data_db_connection.close()
+
     def get_granules(self):
         try:
             products = do_sql(self.esa_data_db_connection,
