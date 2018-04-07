@@ -35,39 +35,38 @@ class Master:
 
     def reset_products_not_downloaded(self):
         log.debug("Reseting failed products.")
-        while self.failed_products:
-            try:
-                self.sql.cleanup(self.failed_products)
-            except (Exception, BaseException, KeyboardInterrupt) as e:
-                continue
-            else:
-                log.debug("Reset failed_products.")
-                self.failed_products = []
-                self.sql.close_connections()
+        self.sql.cleanup(self.failed_products)
+        log.debug("Reset failed_products.")
 
     def run(self):
         self.failed_products = deepcopy(self.products)
         log.info("Products to get: {}".format(self.failed_products))
-        while self.products:
+        self.children.get_children(self.options.max_processes)
+
+        while self.products and self.options.run == 1:
             with suppress(Exception, BaseException, KeyboardInterrupt):
+                self.options.update_max_processes_and_run()
                 count = min(self.options.max_processes,
                             len(self.products),
                             len(self.options.usernames))
                 count_products = self.products[0:count]
                 del self.products[0:count]
-                successful_products = (count_products - (self.children.run(count_products)))
-                self.failed_products -= successful_products
-                self.options.update_max_processes_and_run()
-                if not self.options.run:
-                    break
+                successful_products = count_products
+                log.info("successful_products products were {}".format(successful_products))
+                
+                self.failed_products = [product for product in self.failed_products if product not in successful_products]
 
         log.info("Products to be reset in db: {}".format(self.failed_products))
         self.reset_products_not_downloaded()
 
     def idle(self):
-        while self.options.run:
+        while self.options.run == 1:
             with suppress(Exception, BaseException, KeyboardInterrupt):
                 log.info("Spinning up download cycle")
                 self.get_products_from_db()
-                self.run() if self.products else wait(self.options.wait_period)
+                if self.products:
+                    self.run()
+                else:
+                    wait(self.options.wait_period)
+                    self.options.update_max_processes_and_run()
         log.info("Exiting")
