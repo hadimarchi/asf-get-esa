@@ -31,13 +31,14 @@ class Children:
 
     def get_children(self, process_count, granules_usernames):
         log.debug("granule/username pairs again: {}".format(granules_usernames))
-        self.children = Pool(processes=process_count,
-                             maxtasksperchild=1)
+        self.children = Pool(processes=process_count)
+
+    def set_children(self, granules_usernames):
         self.children.map_async(
                                 run_child, granules_usernames,
                                 error_callback=self.cleanup
                                 )
-        self.children.close()
+        # self.children.close()
 
     def join_children(self):
         while True:
@@ -45,26 +46,13 @@ class Children:
                 self.children.join()
                 break
 
-    def check_done(self):
-        if self.accomplised_processes >= self.submitted_processes:
-            self.alive = False
-
-    def conclude_run(self, process_count):
-        while True:
-            with suppress(Exception, BaseException, KeyboardInterrupt):
-                self.accomplised_processes += process_count
-                log.debug("Run through {} products.".format(self.accomplised_processes))
-                self.check_done()
-                break
-
     def run(self, products):
         process_count = len(products)
         granules_usernames = [(products[i], self.usernames[i]) for i in range(process_count)]
         log.debug("granule/username pairs: {}".format(granules_usernames))
-        self.get_children(process_count, granules_usernames)
+        self.set_children(granules_usernames)
         self.join_children()
 
-        log.debug("Process pool has finished")
-        self.conclude_run(len(products))
+        log.debug("finished downloading {} products".format(process_count-self.failed_granules))
 
         return self.failed_granules
