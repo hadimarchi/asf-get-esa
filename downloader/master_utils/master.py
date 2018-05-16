@@ -57,7 +57,7 @@ class Master:
         try:
             self.failed_products = deepcopy(self.products)
             log.info("Products to get: {}".format(self.failed_products))
-            self.children.get_children()
+            self.children.get_children_and_manager()
 
             self.children.run(self.products)
             log.info("successful_products products were {}".format(self.children.successful_granules))
