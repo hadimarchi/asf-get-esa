@@ -9,5 +9,4 @@ class DownloadError(Exception):
 
 
 class KeyboardInterruptError(Exception):
-    def __init__(self, successful_granules):
-        self.successful_granules = successful_granules
+    pass
