@@ -21,7 +21,6 @@ class Options:
         self.user = self.config.get('general', 'username')
         self.password = self.config.get('general', 'password')
         self.num_back = int(self.config.get('fetch', 'num_back'))
-        self.inc = int(self.config.get('fetch', 'group_size'))
         self.users = ','.join(str(user) for user in json.loads(self.config.get('general', 'users')))
         self.hyp3_db = self.db_connection_string("hyp3-db")
         self.pg_db = self.db_connection_string("pgsql")
@@ -37,6 +36,5 @@ class Options:
             "dbname='" + self.config.get(db, 'db') + "' " + \
             "user='" + self.config.get(db, 'user') + "' " + \
             "password='" + self.config.get(db, 'pass') + "'"
-        log.info("Connection string was {}".format(connection_string))
 
         return connection_string

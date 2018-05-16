@@ -4,9 +4,8 @@
 
 from . import logging as log
 import esa_child_downloader as downloader
-from utils.error import DownloadError
-from contextlib import suppress
-from multiprocessing import Pool, Process
+from utils.error import KeyboardInterruptError
+from multiprocessing import Pool, Queue
 
 
 def run_child(granule_username):
@@ -17,42 +16,39 @@ class Children:
     def __init__(self, sql, max_processes, usernames):
         self.sql = sql
         self.max_processes = max_processes
-        self.submitted_processes = 0
-        self.accomplised_processes = 0
-        self.failed_granules = []
         self.usernames = usernames
-        self.alive = True
 
-    def cleanup(self, value):
-        while str(value) not in self.failed_granules:
-            with suppress(Exception, BaseException, KeyboardInterrupt):
-                log.error("Failed Granule: {}".format(str(value)))
-                self.failed_granules.append(str(value))
+    def get_children(self):
+        self.children = Pool(processes=self.max_processes)
 
-    def get_children(self, process_count, granules_usernames):
-        log.debug("granule/username pairs again: {}".format(granules_usernames))
-        self.children = Pool(processes=process_count)
-
-    def set_children(self, granules_usernames):
-        self.children.map_async(
-                                run_child, granules_usernames,
-                                error_callback=self.cleanup
-                                )
-        # self.children.close()
-
-    def join_children(self):
-        while True:
-            with suppress(Exception, BaseException, KeyboardInterrupt):
-                self.children.join()
-                break
+    def setup_and_run_children(self, granules_usernames):
+        return self.children.map_async(run_child, granules_usernames)
 
     def run(self, products):
-        process_count = len(products)
-        granules_usernames = [(products[i], self.usernames[i]) for i in range(process_count)]
-        log.debug("granule/username pairs: {}".format(granules_usernames))
-        self.set_children(granules_usernames)
-        self.join_children()
+        self.products = products
+        process_count = len(self.products)
 
-        log.debug("finished downloading {} products".format(process_count-self.failed_granules))
+        if self.max_processes < process_count:
+            chunk, remainder = divmod(process_count, self.max_processes)
+            successful_granules_queue = Queue()
+            granules_usernames_queue = [(self.products[i*chunk: (i+1)*chunk],
+                                        self.usernames[i], successful_granules_queue) for i in range(self.max_processes)]
+            del self.products[self.max_processes*chunk]
 
-        return self.failed_granules
+            for i in range(remainder):
+                granules_usernames_queue[i][0].append(self.products[i])
+
+        else:
+            granules_usernames_queue = [([self.products[i]], self.usernames[i], successful_granules_queue) for i in range(process_count)]
+
+        log.info("granules/username pairs: {}".format(granules_usernames_queue[:2]))
+        try:
+            self.setup_and_run_children(granules_usernames_queue)
+
+        except (Exception) as e:
+            log.error("An error occurred: {} ".format(str(e)))
+        else:
+            log.info("finished downloading {} products".format(process_count))
+        finally:
+            while not successful_granules_queue.empty():
+                self.successful_granules.append(self.successful_granules_queue.get())

@@ -33,8 +33,4 @@ class Downloader():
     def download_granule(self, product, granule):
         log.info("Downloading product: {} corresponding to granule: {}"
                  .format(product, granule))
-        try:
-            self.api.download(product, directory_path=self.download_path)
-
-        except (Exception, BaseException, KeyboardInterrupt) as e:
-            print(str(e))
+        self.api.download(product, directory_path=self.download_path)

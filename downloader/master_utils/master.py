@@ -34,39 +34,49 @@ class Master:
         log.info("Products for this run: {}".format(self.products))
 
     def reset_products_not_downloaded(self):
-        log.debug("Reseting failed products.")
-        self.sql.cleanup(self.failed_products)
-        log.debug("Reset failed_products.")
+        try:
+            log.debug("Reseting failed products downloaded status to false.")
+            log.info("Products to be reset in db: {}".format(self.failed_products))
+
+            self.sql.cleanup(self.failed_products)
+            log.debug("Reset failed_products.")
+        except (Exception, BaseException):
+            log.error("An error occurred in the database. Retrying reset")
+            try:
+                self.sql.cleanup(self.failed_products)
+                log.info("Reset retry successful")
+            except (Exception, BaseException):
+                log.error("Granules could not be reset, download status in database may be innaccurate for some granules")
+                log.error("Failed Products: {}".format(self.failed_products))
+
+        except KeyboardInterrupt:
+            log.info("Keyboard interrupt ignored. Need to reset failed products in db")
+            self.reset_products_not_downloaded()
 
     def run(self):
         self.failed_products = deepcopy(self.products)
         log.info("Products to get: {}".format(self.failed_products))
-        self.children.get_children(self.options.max_processes)
+        self.children.get_children()
+        try:
+            self.children.run(self.products)
+            log.info("successful_products products were {}".format(self.children.successful_granules))
 
-        while self.products and self.options.run == 1:
-            with suppress(Exception, BaseException, KeyboardInterrupt):
-                self.options.update_max_processes_and_run()
-                count = min(self.options.max_processes,
-                            len(self.products),
-                            len(self.options.usernames))
-                count_products = self.products[0:count]
-                del self.products[0:count]
-                successful_products = count_products
-                log.info("successful_products products were {}".format(successful_products))
-                
-                self.failed_products = [product for product in self.failed_products if product not in successful_products]
+        except KeyboardInterrupt:
+            log.info("Received keyboard interrupt, cleaning up and shutting down")
+            self.options.run = 0
 
-        log.info("Products to be reset in db: {}".format(self.failed_products))
-        self.reset_products_not_downloaded()
+        finally:
+            self.failed_products = [product for product in self.failed_products if (
+                product not in self.children.successful_granules[i] for i in range(len(self.children.successful_granules)))]
+            self.reset_products_not_downloaded()
 
     def idle(self):
-        while self.options.run == 1:
-            with suppress(Exception, BaseException, KeyboardInterrupt):
-                log.info("Spinning up download cycle")
-                self.get_products_from_db()
-                if self.products:
-                    self.run()
-                else:
-                    wait(self.options.wait_period)
-                    self.options.update_max_processes_and_run()
-        log.info("Exiting")
+        while self.options.run:
+            log.info("Spinning up download cycle")
+            self.get_products_from_db()
+            if self.products:
+                self.run()
+            else:
+                wait(self.options.wait_period)
+                self.options.update_max_processes_and_run()
+        log.info("run option is not 1, exiting")
