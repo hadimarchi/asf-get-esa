@@ -6,4 +6,4 @@ import logging
 
 logging.basicConfig(filename='master.log',
                     level=logging.DEBUG,
-                    format='%(pathname)s %(asctime)s %(levelname)s %(message)s')
+                    format='%(filename)s %(funcName)s %(levelname)s: %(message)s')
