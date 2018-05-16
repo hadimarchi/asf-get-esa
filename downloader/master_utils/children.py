@@ -20,13 +20,13 @@ class Children:
         self.usernames = usernames
         self.successful_granules = []
 
-    def mgr_init(self):
+    def set_manager_to_survive_interrupt(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
     def get_children_and_manager(self):
         self.children = Pool(processes=self.max_processes)
         self.manager = SyncManager()
-        self.manager.start(self.mgr_init)
+        self.manager.start(self.set_manager_to_survive_interrupt)
         self.successful_granules_list = self.manager.list(self.successful_granules)
 
     def generate_granule_username_pairing(self):

@@ -40,7 +40,7 @@ class Master:
 
             self.sql.cleanup(self.failed_products)
             log.info("Reset failed_products.")
-        except (Exception):
+        except Exception:
             log.error("An error occurred in the database. Retrying reset")
             try:
                 self.sql.cleanup(self.failed_products)
@@ -53,14 +53,18 @@ class Master:
             log.info("Keyboard interrupt ignored. Need to reset failed products in db")
             self.reset_products_not_downloaded()
 
+    def get_failed_products(self):
+        log.info("Successfully downloaded products: {}".format(self.children.successful_granules_list))
+        self.failed_products = [product for product in self.failed_products if (
+            product not in self.children.successful_granules_list)]
+
     def run(self):
         try:
             self.failed_products = deepcopy(self.products)
             log.info("Products to get: {}".format(self.failed_products))
-            self.children.get_children_and_manager()
 
+            self.children.get_children_and_manager()
             self.children.run(self.products)
-            log.info("successful_products products were {}".format(self.children.successful_granules))
 
         except (KeyboardInterruptError, KeyboardInterrupt):
             log.info("Received keyboard interrupt, cleaning up and shutting down")
@@ -71,9 +75,7 @@ class Master:
 
         finally:
             try:
-                log.info("Successful granules: {}".format(self.children.successful_granules_list))
-                self.failed_products = [product for product in self.failed_products if (
-                    product not in self.children.successful_granules_list)]
+                self.get_failed_products()
             except Exception:
                 log.error("Failed products list is not accurate, some products may undergo an erroneous reset")
             finally:
