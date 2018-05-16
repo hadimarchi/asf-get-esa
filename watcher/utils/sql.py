@@ -55,7 +55,7 @@ class Esa_Sql():
             log.error("ESA database did not accept product")
             log.error("Error: {}".format(str(e)))
         else:
-            log.info("Inserted {}".format(product[0]))
+            log.info("Inserted {}".format(product))
 
     def close_connections(self):
         self.hyp3_db_connection.close()
