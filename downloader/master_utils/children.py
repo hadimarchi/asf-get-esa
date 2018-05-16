@@ -23,23 +23,20 @@ class Children:
     def mgr_init(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-    def get_children(self):
+    def get_children_and_manager(self):
         self.children = Pool(processes=self.max_processes)
         self.manager = SyncManager()
         self.manager.start(self.mgr_init)
         self.successful_granules_list = self.manager.list(self.successful_granules)
 
-    def setup_and_run_children(self, granules_usernames_list):
-        self.children.map_async(run_child, granules_usernames_list)
-
-    def run(self, products):
-        self.products = products
-        process_count = len(self.products)
-
-        if self.max_processes < process_count:
-            chunk, remainder = divmod(process_count, self.max_processes)
+    def generate_granule_username_pairing(self):
+        if self.max_processes < self.product_count:
+            chunk, remainder = divmod(self.product_count, self.max_processes)
             granules_usernames_list = [(self.products[i*chunk: (i+1)*chunk],
-                                        self.usernames[i], self.successful_granules_list) for i in range(self.max_processes)]
+                                        self.usernames[i],
+                                        self.successful_granules_list)
+                                       for i in range(self.max_processes)]
+
             del self.products[self.max_processes*chunk]
 
             if remainder:
@@ -47,17 +44,34 @@ class Children:
                     granules_usernames_list[i][0].append(self.products[i])
 
         else:
-            granules_usernames_list = [([self.products[i]], self.usernames[i], self.successful_granules_list) for i in range(process_count)]
+            granules_usernames_list = [([self.products[i]],
+                                        self.usernames[i],
+                                        self.successful_granules_list)
+                                       for i in range(self.product_count)]
 
+        return granules_usernames_list
+
+    def start_children(self, granules_usernames_list):
+        self.children.map_async(run_child, granules_usernames_list)
+
+    def join_children(self):
+        self.children.close()
+        self.children.join()
+
+    def terminate_children(self):
+        self.children.terminate()
+        self.children.join()
+
+    def run(self, products):
+        self.products = products
+        self.product_count = len(self.products)
+        granules_usernames_list = self.generate_granule_username_pairing()
         log.info("granules/username pairs: {}".format(granules_usernames_list[:2]))
         try:
-            self.setup_and_run_children(granules_usernames_list)
-            self.children.close()
-            self.children.join()
-
+            self.start_children(granules_usernames_list)
+            self.join_children()
         except (KeyboardInterrupt, Exception) as e:
-            self.children.terminate()
-            self.children.join()
+            self.terminate_children()
             raise e
         else:
-            log.info("finished downloading {} products".format(process_count))
+            log.info("finished downloading {} products".format(self.product_count))

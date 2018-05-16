@@ -2,7 +2,6 @@
 # Author: Hal DiMarchi
 # Downloads high interest products from ESA as determined by esa_watcher.py
 import os
-from time import sleep
 from utils import downloader, options, logging as log
 from utils.error import KeyboardInterruptError
 
@@ -23,9 +22,7 @@ def download(granules_username_list):
                 child_downloader.get_options(child_options)
                 child_downloader.get_sentinel_api()
                 child_downloader.get_download_path()
-
-                # child_downloader.download_granule(product=granule[1], granule=granule[0])
-                sleep(4)
+                child_downloader.download_granule(product=granule[1], granule=granule[0])
                 log.info("Done")
 
             except Exception as e:
