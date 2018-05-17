@@ -6,7 +6,7 @@ import logging
 
 logging.basicConfig(filename='watcher.log',
                     level=logging.DEBUG,
-                    format='%(filename)s %(funcName)s %(levelname)s: %(message)s')
+                    format='%(filename)s %(levelname)s: %(message)s')
 
 
 def get_product_dict(product):

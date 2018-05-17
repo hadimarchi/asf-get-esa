@@ -26,7 +26,8 @@ class Watcher:
                     self.candidate_products[product]['identifier']):
                 self.products.append(
                     (self.candidate_products[product]['identifier'],
-                     self.candidate_products[product]['link_icon'])
+                     self.candidate_products[product]['link_icon'],
+                     self.candidate_products[product]['footprint'])
                     )
                 log.info("{} is unknown to ASF".format(
                         self.candidate_products[product]['identifier']))

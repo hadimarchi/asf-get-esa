@@ -22,8 +22,7 @@ class Master:
     def get_product_ids_from_url(self):
         for product in range(len(self.products)):
             self.products[product] = get_product_from_url(
-                                        self.products[product]
-                                        )
+                                        self.products[product])
 
     def get_products_from_db(self):
         self.products = self.sql.get_granules()
@@ -36,18 +35,19 @@ class Master:
     def reset_products_not_downloaded(self):
         try:
             log.info("Reseting failed products downloaded status to false.")
-            log.info("Products to be reset in db: {}".format(self.failed_products))
+            log.info("Failed products to be reset in db: {}".format(self.failed_products))
 
             self.sql.cleanup(self.failed_products)
             log.info("Reset failed_products.")
         except Exception:
-            log.error("An error occurred in the database. Retrying reset")
+            log.error("An error occurred with the database. Retrying reset")
             try:
                 self.sql.cleanup(self.failed_products)
-                log.info("Reset retry successful")
-            except (Exception):
+                log.error("Reset retry successful")
+            except Exception as e:
                 log.error("Granules could not be reset, download status in database may be innaccurate for some granules")
                 log.error("Failed Products: {}".format(self.failed_products))
+                log.error("Error was: {}".format(str(e)))
 
         except KeyboardInterrupt:
             log.info("Keyboard interrupt ignored. Need to reset failed products in db")

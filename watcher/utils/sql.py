@@ -36,17 +36,17 @@ class Esa_Sql():
                                {'name': product})
         return len(query)
 
-    def check_hyp3_db_for_intersecting_subscription(self, location):
-        try:
-            intersecting_subscriptions = self.do_hyp3_sql(
-                                         self.options.intersects_hyp3_subs_sql.format(
-                                            self.options.users),
-                                         {'location': location})
-        except Exception:
-            return False
-        else:
+    def check_hyp3_db_for_intersecting_subscription(self, product):
+        location = product[2]
+        intersecting_subscriptions = self.do_hyp3_sql(
+                                     self.options.intersects_hyp3_subs_sql.format(
+                                        self.options.users),
+                                     {'location': location})
+        if intersecting_subscriptions:
+            log.info("{} matched hyp3 subscriptions".format(product[0]))
             log.info("subscriptions matching: {}".format(intersecting_subscriptions))
             return True
+        return False
 
     def insert_product_in_db(self, product):
         try:
