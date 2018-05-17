@@ -15,9 +15,9 @@ class Master:
     def __init__(self, location):
         self.options = Options(location)
         self.sql = Esa_Data_Sql(self.options)
-        self.children = Children(self.sql,
-                                 self.options.max_processes,
-                                 self.options.usernames)
+        self.children = Children(sql=self.sql,
+                                 max_processes=self.options.max_processes,
+                                 usernames=self.options.usernames)
 
     def get_product_ids_from_url(self):
         for product in range(len(self.products)):
@@ -58,7 +58,7 @@ class Master:
         self.failed_products = [product for product in self.failed_products if (
             product not in self.children.successful_granules_list)]
 
-    def run(self):
+    def download_products(self):
         try:
             self.failed_products = deepcopy(self.products)
             log.info("Products to get: {}".format(self.failed_products))
@@ -87,8 +87,10 @@ class Master:
             log.info("Spinning up download cycle")
             self.get_products_from_db()
             if self.products:
-                self.run()
+                self.download_products()
+                if not self.options.run:
+                    break
             else:
                 wait(self.options.wait_period)
-                self.options.update_max_processes_and_run()
+            self.options.update_max_processes_and_run()
         log.info("run option is not 1, exiting")
