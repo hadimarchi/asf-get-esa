@@ -1,4 +1,4 @@
-from . import get_product_dict, logging as log
+from . import check_and_clean_log_file, get_product_dict, logging as log
 from .sql import Esa_Sql
 from .options import Options
 
@@ -11,6 +11,8 @@ class Watcher:
         self.sql = Esa_Sql(self.options)
         self.api = SentinelAPI(self.options.user, self.options.password)
         self.products = []
+
+        check_and_clean_log_file()
 
     def find_candidate_products(self):
         log.info("Finding candidate products at ESA")
