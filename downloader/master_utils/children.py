@@ -18,7 +18,6 @@ class Children:
         self.sql = sql
         self.max_processes = max_processes
         self.usernames = usernames
-        self.successful_granules = []
 
     def set_manager_to_survive_interrupt(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -27,7 +26,7 @@ class Children:
         self.children = Pool(processes=self.max_processes)
         self.manager = SyncManager()
         self.manager.start(self.set_manager_to_survive_interrupt)
-        self.successful_granules_list = self.manager.list(self.successful_granules)
+        self.successful_granules_list = self.manager.list()
 
     def generate_granule_username_pairing(self):
         if self.max_processes < self.product_count:
@@ -37,11 +36,9 @@ class Children:
                                         self.successful_granules_list)
                                        for i in range(self.max_processes)]
 
-            del self.products[self.max_processes*chunk]
-
-            if remainder:
-                for i in range(remainder):
-                    granules_usernames_list[i][0].append(self.products[i])
+            del self.products[:(self.max_processes*chunk)-1]
+            for i in range(remainder):
+                granules_usernames_list[i][0].append(self.products[i])
 
         else:
             granules_usernames_list = [([self.products[i]],
@@ -71,6 +68,7 @@ class Children:
             self.start_children(granules_usernames_list)
             self.join_children()
         except (KeyboardInterrupt, Exception) as e:
+            log.error(str(e))
             self.terminate_children()
             raise e
         else:
