@@ -9,8 +9,9 @@ from multiprocessing.managers import SyncManager
 import signal
 
 
-def run_child(granule_username):
-    return downloader.download(granule_username)
+def run_child(granules_username_list):
+    child = downloader.Child_Downloader(granules_username_list)
+    return child.download()
 
 
 class Children:
@@ -28,28 +29,32 @@ class Children:
         self.manager.start(self.set_manager_to_survive_interrupt)
         self.successful_granules_list = self.manager.list()
 
-    def generate_granule_username_pairing(self):
-        if self.max_processes < self.product_count:
-            chunk, remainder = divmod(self.product_count, self.max_processes)
-            granules_usernames_list = [(self.products[i*chunk: (i+1)*chunk],
-                                        self.usernames[i],
-                                        self.successful_granules_list)
-                                       for i in range(self.max_processes)]
+    def generate_child_argument_dict_from_max_processes(self):
+        chunk, remainder = divmod(self.product_count, self.max_processes)
+        self.granules_usernames_list = [{"granules": self.products[i*chunk: (i+1)*chunk],
+                                         "username": self.usernames[i],
+                                         "successful_granules": self.successful_granules_list}
+                                        for i in range(self.max_processes)]
 
-            del self.products[:(self.max_processes*chunk)-1]
-            for i in range(remainder):
-                granules_usernames_list[i][0].append(self.products[i])
+        del self.products[:(self.max_processes*chunk)]
+        for i in range(remainder):
+            self.granules_usernames_list[i]["granules"].append(self.products[i])
+
+    def generate_child_argument_dict_from_product_count(self):
+        self.granules_usernames_list = [{"granules": [self.products[i]],
+                                         "username": self.usernames[i],
+                                         "successful_granules": self.successful_granules_list}
+                                        for i in range(self.product_count)]
+
+    def generate_child_arguments(self):
+        if self.max_processes < self.product_count:
+            self.generate_child_argument_dict_from_max_processes()
 
         else:
-            granules_usernames_list = [([self.products[i]],
-                                        self.usernames[i],
-                                        self.successful_granules_list)
-                                       for i in range(self.product_count)]
+            self.generate_child_argument_dict_from_product_count()
 
-        return granules_usernames_list
-
-    def start_children(self, granules_usernames_list):
-        self.children.map_async(run_child, granules_usernames_list)
+    def start_children(self):
+        self.children.map_async(run_child, self.granules_usernames_list)
 
     def join_children(self):
         self.children.close()
@@ -62,10 +67,10 @@ class Children:
     def run(self, products):
         self.products = products
         self.product_count = len(self.products)
-        granules_usernames_list = self.generate_granule_username_pairing()
-        log.info("granules/username pairs: {}".format(granules_usernames_list[:2]))
+        self.generate_child_arguments()
+        log.info("granules/username pairs: {}".format(self.granules_usernames_list[:1]))
         try:
-            self.start_children(granules_usernames_list)
+            self.start_children()
             self.join_children()
         except (KeyboardInterrupt, Exception) as e:
             log.error(str(e))
