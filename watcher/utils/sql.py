@@ -14,7 +14,6 @@ class Esa_Sql():
         self.get_connections()
 
     def get_connections(self):
-        log.info("Hyp3 connection is {}".format(self.options.hyp3_db))
         self.hyp3_db_connection = psycopg2.connect(self.options.hyp3_db)
         self.pg_db_connection = psycopg2.connect(self.options.pg_db)
         self.esa_data_db_connection = psycopg2.connect(self.options.esa_data_db)
@@ -35,22 +34,28 @@ class Esa_Sql():
     def check_pg_db_for_product(self, product):
         query = self.do_pg_sql(self.options.find_granules_in_pg_sql,
                                {'name': product})
-        print(query)
         return len(query)
 
-    def check_hyp3_db_for_intersecting_subscription(self, location):
-        try:
-            self.do_hyp3_sql(
-                             self.options.intersects_hyp3_subs_sql.format(
-                                 self.options.users),
-                             {'location': location})
-        except:
-            return False
-        else:
+    def check_hyp3_db_for_intersecting_subscription(self, product):
+        location = product[2]
+        intersecting_subscriptions = self.do_hyp3_sql(
+                                     self.options.intersects_hyp3_subs_sql.format(
+                                        self.options.users),
+                                     {'location': location})
+        if intersecting_subscriptions:
+            log.info("{} matched hyp3 subscriptions".format(product[0]))
+            log.info("subscriptions matching: {}".format(intersecting_subscriptions))
             return True
+        return False
 
     def insert_product_in_db(self, product):
-        self.do_esa_data_sql(self.options.insert_sql, product)
+        try:
+            self.do_esa_data_sql(self.options.insert_sql, product)
+        except Exception as e:
+            log.error("ESA database did not accept product")
+            log.error("Error: {}".format(str(e)))
+        else:
+            log.info("Inserted {}".format(product))
 
     def close_connections(self):
         self.hyp3_db_connection.close()

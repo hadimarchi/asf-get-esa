@@ -6,3 +6,7 @@
 class DownloadError(Exception):
     def __init__(self, granule):
         self.granule = granule
+
+
+class KeyboardInterruptError(Exception):
+    pass

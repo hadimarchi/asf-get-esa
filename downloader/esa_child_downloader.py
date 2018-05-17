@@ -2,26 +2,35 @@
 # Author: Hal DiMarchi
 # Downloads high interest products from ESA as determined by esa_watcher.py
 import os
-from utils import downloader, options, error, logging as log
+from utils import downloader, options, logging as log
+from utils.error import KeyboardInterruptError
 
 
-def download(granule_username):
+def download(granules_username_list):
     try:
-        granule = granule_username[0][0]
-        product = granule_username[0][1]
-        username = granule_username[1]
-        log.info("Spinning up single download")
-        child_options = options.Options(os.path.dirname(__file__), username)
-        child_downloader = downloader.Downloader(os.path.dirname(__file__))
+        granules = granules_username_list[0]
+        username = granules_username_list[1]
+        successful_granules = granules_username_list[2]
 
-        child_downloader.get_options(child_options)
-        child_downloader.get_sentinel_api()
-        child_downloader.get_download_path()
+        log.info('processing {} granules'.format(len(granules)))
+        for granule in granules:
+            try:
+                log.info("Spinning up single download")
+                child_options = options.Options(os.path.dirname(__file__), username)
+                child_downloader = downloader.Downloader(os.path.dirname(__file__))
 
-        child_downloader.download_granule(product=product, granule=granule)
-        log.info("Done")
+                child_downloader.get_options(child_options)
+                child_downloader.get_sentinel_api()
+                child_downloader.get_download_path()
+                child_downloader.download_granule(product=granule[1], granule=granule[0])
+                log.info("Done")
 
-    except (Exception, KeyboardInterrupt, BaseException, SystemExit) as e:
-        log.error("Downloading of {} Failed, returning".format(granule))
-        log.error("Error was: {}".format(str(e)))
-        raise error.DownloadError(granule)
+            except Exception as e:
+                log.error("Downloading of {} failed".format(granule))
+                log.error("Error was: {}".format(str(e)))
+            else:
+                log.info("{} was successfully downloaded".format(granule))
+                successful_granules.append(granule)
+                log.debug("{}".format(successful_granules))
+    except KeyboardInterrupt:
+        raise KeyboardInterruptError()

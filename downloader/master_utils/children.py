@@ -4,9 +4,9 @@
 
 from . import logging as log
 import esa_child_downloader as downloader
-from utils.error import DownloadError
-from contextlib import suppress
-from multiprocessing import Pool, Process
+from multiprocessing import Pool
+from multiprocessing.managers import SyncManager
+import signal
 
 
 def run_child(granule_username):
@@ -17,42 +17,59 @@ class Children:
     def __init__(self, sql, max_processes, usernames):
         self.sql = sql
         self.max_processes = max_processes
-        self.submitted_processes = 0
-        self.accomplised_processes = 0
-        self.failed_granules = []
         self.usernames = usernames
-        self.alive = True
 
-    def cleanup(self, value):
-        while str(value) not in self.failed_granules:
-            with suppress(Exception, BaseException, KeyboardInterrupt):
-                log.error("Failed Granule: {}".format(str(value)))
-                self.failed_granules.append(str(value))
+    def set_manager_to_survive_interrupt(self):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-    def get_children(self, process_count, granules_usernames):
-        log.debug("granule/username pairs again: {}".format(granules_usernames))
-        self.children = Pool(processes=process_count)
+    def get_children_and_manager(self):
+        self.children = Pool(processes=self.max_processes)
+        self.manager = SyncManager()
+        self.manager.start(self.set_manager_to_survive_interrupt)
+        self.successful_granules_list = self.manager.list()
 
-    def set_children(self, granules_usernames):
-        self.children.map_async(
-                                run_child, granules_usernames,
-                                error_callback=self.cleanup
-                                )
-        # self.children.close()
+    def generate_granule_username_pairing(self):
+        if self.max_processes < self.product_count:
+            chunk, remainder = divmod(self.product_count, self.max_processes)
+            granules_usernames_list = [(self.products[i*chunk: (i+1)*chunk],
+                                        self.usernames[i],
+                                        self.successful_granules_list)
+                                       for i in range(self.max_processes)]
+
+            del self.products[:(self.max_processes*chunk)-1]
+            for i in range(remainder):
+                granules_usernames_list[i][0].append(self.products[i])
+
+        else:
+            granules_usernames_list = [([self.products[i]],
+                                        self.usernames[i],
+                                        self.successful_granules_list)
+                                       for i in range(self.product_count)]
+
+        return granules_usernames_list
+
+    def start_children(self, granules_usernames_list):
+        self.children.map_async(run_child, granules_usernames_list)
 
     def join_children(self):
-        while True:
-            with suppress(Exception, BaseException, KeyboardInterrupt):
-                self.children.join()
-                break
+        self.children.close()
+        self.children.join()
+
+    def terminate_children(self):
+        self.children.terminate()
+        self.children.join()
 
     def run(self, products):
-        process_count = len(products)
-        granules_usernames = [(products[i], self.usernames[i]) for i in range(process_count)]
-        log.debug("granule/username pairs: {}".format(granules_usernames))
-        self.set_children(granules_usernames)
-        self.join_children()
-
-        log.debug("finished downloading {} products".format(process_count-self.failed_granules))
-
-        return self.failed_granules
+        self.products = products
+        self.product_count = len(self.products)
+        granules_usernames_list = self.generate_granule_username_pairing()
+        log.info("granules/username pairs: {}".format(granules_usernames_list[:2]))
+        try:
+            self.start_children(granules_usernames_list)
+            self.join_children()
+        except (KeyboardInterrupt, Exception) as e:
+            log.error(str(e))
+            self.terminate_children()
+            raise e
+        else:
+            log.info("finished downloading {} products".format(self.product_count))

@@ -38,7 +38,7 @@ class Esa_Data_Sql:
         return products
 
     def cleanup(self, failed_products):
-        log.debug("Reseting granules: {}".format(failed_products))
+        log.info("Reseting granules: {}".format(failed_products))
         do_multiple_updates(self.esa_data_db_connection,
                             False,
                             self.options.update_downloaded_for_esa_data,
@@ -59,9 +59,12 @@ def do_sql(db_conn, sql, vals=None):
 
 
 def do_multiple_updates(db_conn, true_false, sql, products):
-    cur = db_conn.cursor()
-    for product in range(len(products)):
-        vals = {'true_false': true_false,
-                'granule': products[product][0]}
-        cur.execute(sql, vals)
-    cur.close()
+    try:
+        cur = db_conn.cursor()
+        for product in range(len(products)):
+            vals = {'true_false': true_false,
+                    'granule': products[product][0]}
+            cur.execute(sql, vals)
+        cur.close()
+    except KeyboardInterrupt:
+        do_multiple_updates(db_conn, False, sql, products)
