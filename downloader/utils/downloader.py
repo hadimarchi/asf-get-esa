@@ -8,9 +8,12 @@ from . import logging as log
 
 
 class Downloader():
-    def __init__(self, downloader_path):
+    def __init__(self, downloader_path, options):
         self.name = 'esa_downloader'
         self.downloader_path = downloader_path
+        self.get_options(options)
+        self.get_sentinel_api()
+        self.get_download_path()
 
     def get_options(self, options):
         self.options = options
