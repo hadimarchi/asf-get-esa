@@ -4,7 +4,7 @@
 from copy import deepcopy
 from time import sleep as wait
 
-from . import get_product_from_url, logging as log
+from . import check_and_clean_log_file, get_product_from_url, logging as log
 from .children import Children
 from .sql import Esa_Data_Sql
 from .options import Options
@@ -84,6 +84,7 @@ class Master:
 
     def idle(self):
         while self.options.run:
+            check_and_clean_log_file()
             log.info("Spinning up download cycle")
             self.get_products_from_db()
             if self.products:

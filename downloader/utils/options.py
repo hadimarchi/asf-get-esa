@@ -21,12 +21,3 @@ class Options():
         self.password = self.config.get('general', 'password')
         self.esa_host = self.config.get('general', 'ESA_host')
         self.download_dir = self.config.get('general', 'download_dir')
-
-    def get_authenticated_url(self, url):
-        authenticated_url = "https://{}:{}@{}".format(
-                                                      self.user,
-                                                      self.password,
-                                                      url
-                                                      )
-        print(authenticated_url)
-        return authenticated_url

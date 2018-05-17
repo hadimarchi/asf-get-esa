@@ -38,10 +38,14 @@ class Esa_Sql():
 
     def check_hyp3_db_for_intersecting_subscription(self, product):
         location = product[2]
-        intersecting_subscriptions = self.do_hyp3_sql(
-                                     self.options.intersects_hyp3_subs_sql.format(
-                                        self.options.users),
-                                     {'location': location})
+        try:
+            intersecting_subscriptions = self.do_hyp3_sql(
+                                         self.options.intersects_hyp3_subs_sql.format(
+                                            self.options.users),
+                                         {'location': location})
+        except:
+            return False
+
         if intersecting_subscriptions:
             log.info("{} matched hyp3 subscriptions".format(product[0]))
             log.info("subscriptions matching: {}".format(intersecting_subscriptions))
