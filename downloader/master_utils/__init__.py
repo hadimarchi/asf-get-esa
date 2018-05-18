@@ -28,4 +28,4 @@ def check_and_clean_log_file():
         if log_file_size > (MAX_LOG_FILE_SIZE):
             with open(LOG_FILE_NAME, 'w'):
                 pass
-        logging.info("Cleaned log")
+            logging.info("Cleaned log")

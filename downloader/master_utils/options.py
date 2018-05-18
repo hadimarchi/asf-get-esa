@@ -31,6 +31,19 @@ class Options:
 
         self.usernames = json.loads(self.config.get("users", "usernames"))
 
+        self.get_and_set_running()
+
+    def get_and_set_running(self):
+        self.running = int(self.config.get('general', 'running'))
+        if self.running:
+            raise Exception("Downloader is already running")
+        self.set_running('1')
+
+    def set_running(self, running):
+        self.config.set('general', 'running', running)
+        with open(self.config_file, 'w') as config_file:
+            self.config.write(config_file)
+
     def update_max_processes_and_run(self):
         log.info("Updating max processes, and run")
         self.config.read(self.config_file)

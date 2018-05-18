@@ -27,7 +27,8 @@ class Child_Downloader:
             log.info("Spinning up single download")
             self.downloader.download_granule(granule=granule, product=product)
             log.info("Done")
-
+        except OSError as e:
+            raise e
         except Exception as e:
             log.error("Downloading of {} failed".format(granule))
             log.error("Error was: {}".format(str(e)))

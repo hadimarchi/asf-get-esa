@@ -7,6 +7,7 @@ import esa_child_downloader as downloader
 from multiprocessing import Pool
 from multiprocessing.managers import SyncManager
 import signal
+import sys
 
 
 def run_child(granules_username_list):
@@ -19,14 +20,21 @@ class Children:
         self.sql = sql
         self.max_processes = max_processes
         self.usernames = usernames
+        signal.signal(signal.SIGHUP, self.master_death_handler)
 
-    def set_manager_to_survive_interrupt(self):
+    def master_death_handler(self):
+        self.children.terminate()
+        log.error("Master died!")
+        sys.exit(0)
+
+    def set_manager_to_survive_interrupt_and_terminate(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
 
     def get_children_and_manager(self):
         self.children = Pool(processes=self.max_processes)
         self.manager = SyncManager()
-        self.manager.start(self.set_manager_to_survive_interrupt)
+        self.manager.start(self.set_manager_to_survive_interrupt_and_terminate)
         self.successful_granules_list = self.manager.list()
 
     def generate_child_argument_dict_from_max_processes(self):
@@ -73,7 +81,6 @@ class Children:
             self.start_children()
             self.join_children()
         except (KeyboardInterrupt, Exception) as e:
-            log.error(str(e))
             self.terminate_children()
             raise e
         else:

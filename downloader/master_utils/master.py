@@ -3,6 +3,8 @@
 # Author: Hal DiMarchi
 from copy import deepcopy
 from time import sleep as wait
+import signal
+import sys
 
 from . import check_and_clean_log_file, get_product_from_url, logging as log
 from .children import Children
@@ -18,6 +20,13 @@ class Master:
         self.children = Children(sql=self.sql,
                                  max_processes=self.options.max_processes,
                                  usernames=self.options.usernames)
+        self.register_signals()
+
+    def register_signals(self):
+        signal.signal(signal.SIGTERM, self.signal_handler)
+
+    def signal_handler(self, signal_number, stack_frame):
+        sys.exit(0)
 
     def get_product_ids_from_url(self):
         for product in range(len(self.products)):
@@ -43,11 +52,13 @@ class Master:
             log.error("An error occurred with the database. Retrying reset")
             try:
                 self.sql.cleanup(self.failed_products)
-                log.error("Reset retry successful")
+
             except Exception as e:
                 log.error("Granules could not be reset, download status in database may be innaccurate for some granules")
                 log.error("Failed Products: {}".format(self.failed_products))
                 log.error("Error was: {}".format(str(e)))
+            else:
+                log.error("Reset retry successful")
 
         except KeyboardInterrupt:
             log.info("Keyboard interrupt ignored. Need to reset failed products in db")
@@ -68,7 +79,11 @@ class Master:
 
         except (KeyboardInterruptError, KeyboardInterrupt):
             log.info("Received keyboard interrupt, cleaning up and shutting down")
-            self.options.run = 0
+            sys.exit(0)
+
+        except OSError as e:
+            log.error("An operating system error occurred: {}".format(str(e)))
+            sys.exit(0)
 
         except Exception as e:
             log.error("An error occurred: {} ".format(str(e)))
@@ -81,17 +96,19 @@ class Master:
             finally:
                 self.children.manager.shutdown()
                 self.reset_products_not_downloaded()
+                self.failed_products = []
 
     def idle(self):
-        while self.options.run:
-            check_and_clean_log_file()
-            log.info("Spinning up download cycle")
-            self.get_products_from_db()
-            if self.products:
-                self.download_products()
-                if not self.options.run:
-                    break
-            else:
-                wait(self.options.wait_period)
-            self.options.update_max_processes_and_run()
-        log.info("run option is not 1, exiting")
+        try:
+            while self.options.run:
+                check_and_clean_log_file()
+                log.info("Spinning up download cycle")
+                self.get_products_from_db()
+                if self.products:
+                    self.download_products()
+                else:
+                    wait(self.options.wait_period)
+                self.options.update_max_processes_and_run()
+            log.info("run option is not 1, exiting")
+        finally:
+            self.options.set_running('0')

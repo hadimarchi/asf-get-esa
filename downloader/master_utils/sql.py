@@ -16,8 +16,13 @@ class Esa_Data_Sql:
         self.get_connections()
 
     def get_connections(self):
-        self.esa_data_db_connection = psycopg2.connect(self.options.esa_data_db)
-        self.esa_data_db_connection.autocommit = True
+        try:
+            self.esa_data_db_connection = psycopg2.connect(self.options.esa_data_db)
+            self.esa_data_db_connection.autocommit = True
+        except Exception as e:
+            log.error(str(e))
+            self.options.set_running('0')
+            raise e
 
     def close_connections(self):
         self.esa_data_db_connection.close()
