@@ -91,7 +91,7 @@ class Master:
         finally:
             try:
                 self.get_failed_products()
-            except Exception:
+            except (BaseException, Exception):
                 log.error("Failed products list is not accurate, some products may undergo an erroneous reset")
             finally:
                 self.children.manager.shutdown()

@@ -1,7 +1,6 @@
 # options.py
 # Author: Hal DiMarchi
 # sets up options for watcher
-from . import logging as log
 
 import json
 import os
