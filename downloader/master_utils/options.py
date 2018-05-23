@@ -20,7 +20,6 @@ class Options:
 
     def get_options(self):
         self.password = self.config.get('general', 'password')
-        self.esa_host = self.config.get('general', 'ESA_host')
         self.esa_data_db = self.db_connection_string('esa_data')
         self.get_granule_from_esa_data = self.config.get('sql', 'get_granule')
         self.update_downloaded_for_esa_data = self.config.get('sql', 'download')
