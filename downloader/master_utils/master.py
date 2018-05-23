@@ -6,7 +6,7 @@ from time import sleep as wait
 import signal
 import sys
 
-from . import check_and_clean_log_file, get_product_from_url, logging as log
+from . import check_and_clean_log_file, get_product_from_url, log
 from .children import Children
 from .sql import Esa_Data_Sql
 from .options import Options

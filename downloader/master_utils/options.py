@@ -2,7 +2,7 @@
 # class for wrapping options for esa_master_downloader script
 # Author: Hal DiMarchi
 
-from . import logging as log
+from . import log
 from configparser import SafeConfigParser
 import json
 import os

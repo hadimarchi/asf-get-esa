@@ -2,7 +2,7 @@
 # wrapper around collection of children
 # represented as processes
 
-from . import logging as log
+from . import log
 import esa_child_downloader as downloader
 from multiprocessing import Pool
 from multiprocessing.managers import SyncManager
@@ -76,7 +76,7 @@ class Children:
         self.products = products
         self.product_count = len(self.products)
         self.generate_child_arguments()
-        log.info("granules/username pairs: {}".format(self.granules_usernames_list[:1]))
+        log.debug("granules/username pairs: {}".format(self.granules_usernames_list[:][:1]))
         try:
             self.start_children()
             self.join_children()

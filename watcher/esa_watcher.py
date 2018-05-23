@@ -4,10 +4,11 @@
 
 """
 Usage:
-    esa_watcher.py
+    esa_watcher.py [-v]
     esa_watcher.py -h | --help
 
 Options:
+    -v              verbose output to terminal
     -h --help       Show this screen
 
 Setup:
@@ -51,12 +52,15 @@ Setup:
 
 from docopt import docopt
 import os
-from utils import watcher, logging as log
+from utils import watcher, log, add_sys_out_handler_to_log
 
 
 if __name__ == "__main__":
     log.info("Spinning up")
     watcher_cli_arguments = docopt(__doc__)
+    if watcher_cli_arguments.get('-v'):
+        add_sys_out_handler_to_log()
+
     watcher = watcher.Watcher(os.path.dirname(__file__))
     watcher.find_candidate_products()
     watcher.filter_for_unknown_products()

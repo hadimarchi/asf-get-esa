@@ -1,4 +1,4 @@
-from . import check_and_clean_log_file, get_product_dict, logging as log
+from . import check_and_clean_log_file, get_product_dict, log
 from .sql import Esa_Sql
 from .options import Options
 

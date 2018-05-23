@@ -5,10 +5,11 @@
 
 """
 Usage:
-    esa_master_downloader.py
+    esa_master_downloader.py [-v]
     esa_master_downloader.py -h | --help
 
 Options:
+    -v              verbose output to terminal
     -h --help       Show this screen
 
 Setup:
@@ -50,9 +51,12 @@ Setup:
 """
 from docopt import docopt
 import os
-from master_utils import master
+from master_utils import master, add_sys_out_handler_to_log
 
 if __name__ == '__main__':
     master_downloader_cli_arguments = docopt(__doc__)
+    if master_downloader_cli_arguments.get('-v'):
+        add_sys_out_handler_to_log()
+
     master = master.Master(os.path.dirname(__file__))
     master.idle()

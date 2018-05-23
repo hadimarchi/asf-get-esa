@@ -2,7 +2,7 @@
 # class for connecting with esa_data
 # Author: Hal DiMarchi
 
-from . import logging as log
+from . import log
 
 try:
     import psycopg2

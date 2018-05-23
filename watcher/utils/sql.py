@@ -1,7 +1,7 @@
 # sql.py
 # Author: Hal DiMarchi
 # sql operations for esa_watcher
-from . import logging as log
+from . import log
 import psycopg2
 
 
