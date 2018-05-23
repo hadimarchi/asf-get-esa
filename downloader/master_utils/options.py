@@ -45,6 +45,7 @@ class Options:
             self.config.write(config_file)
 
     def update_max_processes_and_run(self):
+        log.info("Reading config file")
         log.info("Updating max processes, and run")
         self.config.read(self.config_file)
         self.max_processes = int(self.config.get('multiprocessing',

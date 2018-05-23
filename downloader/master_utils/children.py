@@ -84,4 +84,4 @@ class Children:
             self.terminate_children()
             raise e
         else:
-            log.info("finished downloading {} products".format(self.product_count))
+            log.info("finished attempting to download {} products".format(self.product_count))

@@ -4,6 +4,7 @@
 
 import json
 import os
+from datetime import datetime
 from configparser import SafeConfigParser
 
 
@@ -20,6 +21,8 @@ class Options:
         self.user = self.config.get('general', 'username')
         self.password = self.config.get('general', 'password')
         self.num_back = int(self.config.get('fetch', 'num_back'))
+        self.last_search_time = (self.config.get('fetch', 'last_search_time',
+                                 fallback=datetime.isoformat(datetime.min)))
         self.users = ','.join(str(user) for user in json.loads(self.config.get('general', 'users')))
         self.hyp3_db = self.db_connection_string("hyp3-db")
         self.pg_db = self.db_connection_string("pgsql")
@@ -37,3 +40,8 @@ class Options:
             "password='" + self.config.get(db, 'pass') + "'"
 
         return connection_string
+
+    def update_last_search_time(self):
+        self.config.set('fetch', 'last_search_time', datetime.isoformat(datetime.now()))
+        with open(self.config_file, 'w') as config_file:
+            self.config.write(config_file)

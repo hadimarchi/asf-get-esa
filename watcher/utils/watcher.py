@@ -2,6 +2,7 @@ from . import check_and_clean_log_file, get_product_dict, logging as log
 from .sql import Esa_Sql
 from .options import Options
 
+from datetime import datetime
 from sentinelsat.sentinel import SentinelAPI
 
 
@@ -17,9 +18,14 @@ class Watcher:
     def find_candidate_products(self):
         log.info("Finding candidate products at ESA")
         self.candidate_products = self.api.query(limit=self.options.num_back,
-                                                 producttype="SLC")
+                                                 producttype="SLC",
+                                                 ingestiondate=(f"{self.options.last_search_time}Z",
+                                                                datetime.isoformat(datetime.now())+"Z"))
         self.candidate_products.update(self.api.query(limit=self.options.num_back,
-                                                      producttype="GRD"))
+                                                      producttype="GRD",
+                                                      ingestiondate=(f"{self.options.last_search_time}Z",
+                                                                     datetime.isoformat(datetime.now())+"Z")))
+        self.options.update_last_search_time()
         log.info("Inspecting {} products".format(len(self.candidate_products)))
 
     def filter_for_unknown_products(self):

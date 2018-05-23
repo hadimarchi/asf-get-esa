@@ -2,10 +2,7 @@
 # Author: Hal DiMarchi
 # sql operations for esa_watcher
 from . import logging as log
-try:
-    import psycopg2
-except Exception:
-    import psycopg2cffi as psycopg2
+import psycopg2
 
 
 class Esa_Sql():
@@ -43,7 +40,7 @@ class Esa_Sql():
                                          self.options.intersects_hyp3_subs_sql.format(
                                             self.options.users),
                                          {'location': location})
-        except:
+        except Exception:
             return False
 
         if intersecting_subscriptions:
@@ -55,9 +52,9 @@ class Esa_Sql():
     def insert_product_in_db(self, product):
         try:
             self.do_esa_data_sql(self.options.insert_sql, product)
-        except Exception as e:
-            log.error("ESA database did not accept product")
-            log.error("Error: {}".format(str(e)))
+        except psycopg2.IntegrityError as e:
+            log.info("ESA database did not accept product")
+            log.info("Reason: {}".format(str(e)))
         else:
             log.info("Inserted {}".format(product))
 
@@ -73,7 +70,7 @@ def do_sql(db_conn, sql, vals):
 
     try:
         res = cur.fetchall()
-    except:
+    except Exception:
         res = ""
 
     db_conn.commit()

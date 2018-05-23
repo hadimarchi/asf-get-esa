@@ -10,7 +10,7 @@ LOG_FILE_NAME = 'watcher.log'
 
 logging.basicConfig(filename=LOG_FILE_NAME,
                     level=logging.DEBUG,
-                    format='%(filename)s %(levelname)s: %(message)s')
+                    format='%(asctime)s %(filename)s %(levelname)s: %(message)s')
 
 
 def get_product_dict(product):

@@ -44,7 +44,7 @@ class Master:
     def reset_products_not_downloaded(self):
         try:
             log.info("Reseting failed products downloaded status to false.")
-            log.info("Failed products to be reset in db: {}".format(self.failed_products))
+            log.error("Number of failed products: {}".format(len(self.failed_products)))
 
             self.sql.cleanup(self.failed_products)
             log.info("Reset failed_products.")
@@ -55,7 +55,6 @@ class Master:
 
             except Exception as e:
                 log.error("Granules could not be reset, download status in database may be innaccurate for some granules")
-                log.error("Failed Products: {}".format(self.failed_products))
                 log.error("Error was: {}".format(str(e)))
             else:
                 log.error("Reset retry successful")
@@ -65,14 +64,14 @@ class Master:
             self.reset_products_not_downloaded()
 
     def get_failed_products(self):
-        log.info("Successfully downloaded products: {}".format(self.children.successful_granules_list))
-        self.failed_products = [product for product in self.failed_products if (
-            product not in self.children.successful_granules_list)]
+        log.info("Number of successfully downloaded products: {}".format(len(self.children.successful_granules_list)))
+        self.failed_products = [product for product in self.failed_products if
+                                product not in self.children.successful_granules_list]
 
     def download_products(self):
         try:
             self.failed_products = deepcopy(self.products)
-            log.info("Products to get: {}".format(self.failed_products))
+            log.info("Number of products to download: {}".format(len(self.failed_products)))
 
             self.children.get_children_and_manager()
             self.children.run(self.products)

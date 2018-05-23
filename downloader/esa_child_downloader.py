@@ -34,4 +34,4 @@ class Child_Downloader:
             log.error("Error was: {}".format(str(e)))
         else:
             log.info("{} was successfully downloaded".format(granule))
-            self.successful_granules.append(granule)
+            self.successful_granules.append((granule, product))
