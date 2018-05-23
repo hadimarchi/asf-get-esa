@@ -76,7 +76,7 @@ class Children:
         self.products = products
         self.product_count = len(self.products)
         self.generate_child_arguments()
-        log.debug("granules/username pairs: {}".format(self.granules_usernames_list[:][:1]))
+        log.debug("granules/username pairs: {}".format([(pair['granules'], pair['username']) for pair in self.granules_usernames_list]))
         try:
             self.start_children()
             self.join_children()

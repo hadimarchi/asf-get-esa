@@ -43,7 +43,7 @@ class Esa_Data_Sql:
         return products
 
     def cleanup(self, failed_products):
-        log.info("Reseting granules: {}".format(failed_products))
+        log.info("Reseting granules")
         do_multiple_updates(self.esa_data_db_connection,
                             False,
                             self.options.update_downloaded_for_esa_data,

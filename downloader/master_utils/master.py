@@ -26,6 +26,7 @@ class Master:
         signal.signal(signal.SIGTERM, self.signal_handler)
 
     def signal_handler(self, signal_number, stack_frame):
+        log.critical("Received a SIGTERM, cleaning up and shutting down")
         sys.exit(0)
 
     def get_product_ids_from_url(self):
@@ -39,12 +40,10 @@ class Master:
         self.get_product_ids_from_url()
 
         log.info('Found {} products for this run.'.format(len(self.products)))
-        log.info("Products for this run: {}".format(self.products))
 
     def reset_products_not_downloaded(self):
         try:
             log.info("Reseting failed products downloaded status to false.")
-            log.error("Number of failed products: {}".format(len(self.failed_products)))
 
             self.sql.cleanup(self.failed_products)
             log.info("Reset failed_products.")
@@ -67,6 +66,7 @@ class Master:
         log.info("Number of successfully downloaded products: {}".format(len(self.children.successful_granules_list)))
         self.failed_products = [product for product in self.failed_products if
                                 product not in self.children.successful_granules_list]
+        log.info("Number of failed products: {}".format(len(self.failed_products)))
 
     def download_products(self):
         try:
@@ -77,7 +77,7 @@ class Master:
             self.children.run(self.products)
 
         except (KeyboardInterruptError, KeyboardInterrupt):
-            log.info("Received keyboard interrupt, cleaning up and shutting down")
+            log.critical("Received keyboard interrupt, cleaning up and shutting down")
             sys.exit(0)
 
         except OSError as e:
