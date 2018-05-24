@@ -66,4 +66,5 @@ if __name__ == "__main__":
     watcher.filter_for_unknown_products()
     watcher.filter_for_subscription_intersection()
     watcher.insert_products_in_db()
+    watcher.options.set_running('0')
     log.info("Done")

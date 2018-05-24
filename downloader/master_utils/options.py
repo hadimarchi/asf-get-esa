@@ -32,10 +32,13 @@ class Options:
         self.get_and_set_running()
 
     def get_and_set_running(self):
+        self.get_running()
+        self.set_running('1')
+
+    def get_running(self):
         self.running = int(self.config.get('general', 'running'))
         if self.running:
             raise Exception("Downloader is already running")
-        self.set_running('1')
 
     def set_running(self, running):
         self.config.set('general', 'running', running)

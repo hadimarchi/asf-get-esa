@@ -32,6 +32,22 @@ class Options:
         self.intersects_hyp3_subs_sql = self.config.get('sql', 'intersects_subs_sql')
         self.insert_sql = self.config.get('sql', 'insert_sql')
 
+        self.get_and_set_running()
+
+    def get_and_set_running(self):
+        self.get_running()
+        self.set_running('1')
+
+    def get_running(self):
+        self.running = int(self.config.get('general', 'running'))
+        if self.running:
+            raise Exception("Watcher is already running")
+
+    def set_running(self, running):
+        self.config.set('general', 'running', running)
+        with open(self.config_file, 'w') as config_file:
+            self.config.write(config_file)
+
     def db_connection_string(self, db):
         connection_string = \
             "host='" + self.config.get(db, 'host') + "' " + \
