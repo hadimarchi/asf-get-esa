@@ -8,7 +8,7 @@ import os
 
 class Options():
     def __init__(self, downloader_path, username):
-        self.name = "esa_downloader"
+        self.name = "esa_child_downloader"
         self.config_path = os.path.abspath(os.path.join(downloader_path, "config"))
         self.config_file = os.path.join(self.config_path, self.name + '.cfg')
 
