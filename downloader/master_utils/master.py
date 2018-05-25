@@ -36,10 +36,9 @@ class Master:
 
     def get_products_from_db(self):
         self.products = self.sql.get_granules()
-        self.children.submitted_processes = len(self.products)
         self.get_product_ids_from_url()
 
-        log.info('Found {} products for this run.'.format(len(self.products)))
+        log.info(f'Found {len(self.products)} products for this run.')
 
     def reset_products_not_downloaded(self):
         try:
@@ -54,7 +53,7 @@ class Master:
 
             except Exception as e:
                 log.error("Granules could not be reset, download status in database may be innaccurate for some granules")
-                log.error("Error was: {}".format(str(e)))
+                log.error(f"Error was: {str(e)}")
             else:
                 log.error("Reset retry successful")
 
@@ -66,12 +65,12 @@ class Master:
         log.info("Number of successfully downloaded products: {}".format(len(self.children.successful_granules_list)))
         self.failed_products = [product for product in self.failed_products if
                                 product not in self.children.successful_granules_list]
-        log.info("Number of failed products: {}".format(len(self.failed_products)))
+        log.info(f"Number of failed products: {len(self.failed_products)}")
 
     def download_products(self):
         try:
             self.failed_products = deepcopy(self.products)
-            log.info("Number of products to download: {}".format(len(self.failed_products)))
+            log.info(f"Number of products to download: {len(self.failed_products)}")
 
             self.children.get_children_and_manager()
             self.children.run(self.products)
@@ -81,11 +80,11 @@ class Master:
             sys.exit(0)
 
         except OSError as e:
-            log.error("An operating system error occurred: {}".format(str(e)))
+            log.error(f"An operating system error occurred: {str(e)}")
             sys.exit(0)
 
         except Exception as e:
-            log.error("An error occurred: {} ".format(str(e)))
+            log.error(f"An error occurred: {str(e)} ")
 
         finally:
             try:

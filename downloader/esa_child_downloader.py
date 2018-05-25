@@ -11,9 +11,12 @@ class Child_Downloader:
         self.granules = args["granules"]
         self.username = args["username"]
         self.successful_granules = args["successful_granules"]
+
         child_options = options.Options(os.path.dirname(__file__), self.username)
-        self.downloader = downloader.Downloader(os.path.dirname(__file__), child_options)
-        log.info('processing {} granules'.format(len(self.granules)))
+        self.downloader = downloader.Downloader(os.path.dirname(__file__),
+                                                child_options)
+
+        log.info(f'processing {len(self.granules)} granules')
 
     def download(self):
         try:
@@ -30,8 +33,8 @@ class Child_Downloader:
         except OSError as e:
             raise e
         except Exception as e:
-            log.error("Downloading of {} failed".format(granule))
-            log.error("Error was: {}".format(str(e)))
+            log.error(f"Downloading of {granule} failed")
+            log.error(f"Error was: {str(e)}")
         else:
-            log.info("{} was successfully downloaded".format(granule))
+            log.info(f"{granule} was successfully downloaded")
             self.successful_granules.append((granule, product))

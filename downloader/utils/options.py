@@ -21,3 +21,16 @@ class Options():
         self.password = self.config.get('general', 'password')
         self.esa_host = self.config.get('general', 'ESA_host')
         self.download_dir = self.config.get('general', 'download_dir')
+        self.final_dir = self.config.get('general', 'final_dir')
+
+        self.pg_db = self.db_connection_string('pg_db_sql')
+        self.find_granule_sql = self.config.get('pg_db_sql', 'find_granule_sql')
+
+    def db_connection_string(self, db):
+        connection_string = \
+            "host='" + self.config.get(db, 'host') + "' " + \
+            "dbname='" + self.config.get(db, 'db') + "' " + \
+            "user='" + self.config.get(db, 'user') + "' " + \
+            "password='" + self.config.get(db, 'pass') + "'"
+
+        return connection_string
