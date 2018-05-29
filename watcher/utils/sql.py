@@ -4,8 +4,7 @@
 from . import log
 import psycopg2
 
-
-class Esa_Sql():
+class Esa_Sql:
     def __init__(self, options):
         self.options = options
         self.get_connections()

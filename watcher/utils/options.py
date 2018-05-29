@@ -22,7 +22,7 @@ class Options:
         self.password = self.config.get('general', 'password')
         self.num_back = int(self.config.get('fetch', 'num_back'))
         self.last_search_time = (self.config.get('fetch', 'last_search_time',
-                                 fallback=datetime.isoformat(datetime.min)))
+                                 fallback=datetime.isoformat(datetime.now())))
         self.users = ','.join(str(user) for user in json.loads(self.config.get('general', 'users')))
         self.hyp3_db = self.db_connection_string("hyp3-db")
         self.pg_db = self.db_connection_string("pgsql")
