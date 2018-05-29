@@ -55,21 +55,17 @@ def do_sql(db_conn, sql, vals=None):
     cur.execute(sql, vals) if vals else cur.execute(sql)
     try:
         res = cur.fetchall()
-    except (BaseException, Exception, KeyboardInterrupt):
+    except Exception:
         cur.close()
         return ""
-
     cur.close()
     return res
 
 
 def do_multiple_updates(db_conn, true_false, sql, products):
-    try:
-        cur = db_conn.cursor()
-        for product in range(len(products)):
-            vals = {'true_false': true_false,
-                    'granule': products[product][0]}
-            cur.execute(sql, vals)
-        cur.close()
-    except KeyboardInterrupt:
-        do_multiple_updates(db_conn, False, sql, products)
+    cur = db_conn.cursor()
+    for product in range(len(products)):
+        vals = {'true_false': true_false,
+                'granule': products[product][0]}
+        cur.execute(sql, vals)
+    cur.close()

@@ -21,7 +21,7 @@ class Options():
         self.password = self.config.get('general', 'password')
         self.esa_host = self.config.get('general', 'ESA_host')
         self.download_dir = self.config.get('general', 'download_dir')
-        self.final_dir = self.config.get('general', 'final_dir')
+        self.final_dir = os.path.abspath(self.config.get('general', 'final_dir'))
 
         self.pg_db = self.db_connection_string('pg_db_sql')
         self.find_granule_sql = self.config.get('pg_db_sql', 'find_granule_sql')

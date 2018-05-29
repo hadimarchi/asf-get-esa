@@ -6,7 +6,7 @@ import logging
 import sys
 import os
 
-MAX_LOG_FILE_SIZE = 2500000
+MAX_LOG_FILE_SIZE = 1000000
 LOG_FILE_NAME = 'master.log'
 
 logging.basicConfig(filename=LOG_FILE_NAME,
@@ -36,3 +36,13 @@ def check_and_clean_log_file():
             with open(LOG_FILE_NAME, 'w'):
                 pass
             logging.info("Cleaned log")
+
+
+def ensure_paths(paths):
+    for path in paths:
+        ensure_path(path)
+
+
+def ensure_path(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
