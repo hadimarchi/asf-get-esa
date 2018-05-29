@@ -4,9 +4,28 @@
 from . import log
 import psycopg2
 
-class Esa_Sql:
+
+class Sql:
     def __init__(self, options):
         self.options = options
+
+    def do_sql(self, db_conn, sql, vals):
+        cur = db_conn.cursor()
+        cur.execute(sql, vals)
+
+        try:
+            res = cur.fetchall()
+        except Exception:
+            res = ""
+
+        db_conn.commit()
+        cur.close()
+        return res
+
+
+class Esa_Sql(Sql):
+    def __init__(self, options):
+        super().__init__(options)
         self.get_connections()
 
     def get_connections(self):
@@ -19,13 +38,13 @@ class Esa_Sql:
         self.esa_data_db_connection.autocommit = True
 
     def do_hyp3_sql(self, sql, vals):
-        return do_sql(self.hyp3_db_connection, sql, vals)
+        return self.do_sql(self.hyp3_db_connection, sql, vals)
 
     def do_pg_sql(self, sql, vals):
-        return do_sql(self.pg_db_connection, sql, vals)
+        return self.do_sql(self.pg_db_connection, sql, vals)
 
     def do_esa_data_sql(self, sql, vals):
-        return do_sql(self.esa_data_db_connection, sql, vals)
+        return self.do_sql(self.esa_data_db_connection, sql, vals)
 
     def check_pg_db_for_product(self, product):
         query = self.do_pg_sql(self.options.find_granules_in_pg_sql,
@@ -61,17 +80,3 @@ class Esa_Sql:
         self.hyp3_db_connection.close()
         self.pg_db_connection.close()
         self.esa_data_db_connection.close()
-
-
-def do_sql(db_conn, sql, vals):
-    cur = db_conn.cursor()
-    cur.execute(sql, vals)
-
-    try:
-        res = cur.fetchall()
-    except Exception:
-        res = ""
-
-    db_conn.commit()
-    cur.close()
-    return res
