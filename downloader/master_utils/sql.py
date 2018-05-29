@@ -9,32 +9,11 @@ try:
 except ImportError:
     import psycopg2cffi as psycopg2
 
-
-class Sql:
-    def __init__(self, options):
-        self.options = options
-
-    def do_sql(self, db_conn, sql, vals=None):
-        cur = db_conn.cursor()
-        cur.execute(sql, vals) if vals else cur.execute(sql)
-        try:
-            res = cur.fetchall()
-        except Exception:
-            cur.close()
-            return ""
-        cur.close()
-        return res
-
-    def do_multiple_updates(self, db_conn, true_false, sql, products):
-        cur = db_conn.cursor()
-        for product in range(len(products)):
-            vals = {'true_false': true_false,
-                    'granule': products[product][0]}
-            cur.execute(sql, vals)
-        cur.close()
+from importlib.machinery import SourceFileLoader as load
+sql = load("share.options", "../shared/sql.py").load_module()
 
 
-class Esa_Data_Sql(Sql):
+class Esa_Data_Sql(sql.Sql):
     def __init__(self, options):
         super().__init__(options)
         self.get_connections()

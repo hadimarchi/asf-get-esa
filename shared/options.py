@@ -1,5 +1,4 @@
 from configparser import SafeConfigParser
-import os
 
 
 class Base_Options:

@@ -4,26 +4,11 @@
 from . import log
 import psycopg2
 
-
-class Sql:
-    def __init__(self, options):
-        self.options = options
-
-    def do_sql(self, db_conn, sql, vals):
-        cur = db_conn.cursor()
-        cur.execute(sql, vals)
-
-        try:
-            res = cur.fetchall()
-        except Exception:
-            res = ""
-
-        db_conn.commit()
-        cur.close()
-        return res
+from importlib.machinery import SourceFileLoader as load
+sql = load("share.options", "../shared/sql.py").load_module()
 
 
-class Esa_Sql(Sql):
+class Esa_Sql(sql.Sql):
     def __init__(self, options):
         super().__init__(options)
         self.get_connections()
@@ -52,18 +37,17 @@ class Esa_Sql(Sql):
         return len(query)
 
     def check_hyp3_db_for_intersecting_subscription(self, product):
-        location = product[2]
         try:
             intersecting_subscriptions = self.do_hyp3_sql(
                                          self.options.intersects_hyp3_subs_sql.format(
                                             self.options.users),
-                                         {'location': location})
+                                         product)
         except Exception:
             return False
 
         if intersecting_subscriptions:
-            log.info("{} matched hyp3 subscriptions".format(product[0]))
-            log.info("subscriptions matching: {}".format(intersecting_subscriptions))
+            log.info(f"{product['identifier']} matched hyp3 subscriptions")
+            log.info(f"subscriptions matching: {intersecting_subscriptions}")
             return True
         return False
 

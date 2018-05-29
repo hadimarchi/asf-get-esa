@@ -15,6 +15,16 @@ class Watcher:
 
         check_and_clean_log_file()
 
+    def watch(self):
+        try:
+            self.find_candidate_products()
+            self.filter_for_unknown_products()
+            self.filter_for_subscription_intersection()
+            self.insert_products_in_db()
+        finally:
+            self.options.set_running('0')
+            log.info("Done")
+
     def find_candidate_products(self):
         log.info("Finding candidate products at ESA")
         self.candidate_products = self.api.query(limit=self.options.num_back,
@@ -33,19 +43,18 @@ class Watcher:
             if not self.sql.check_pg_db_for_product(
                     self.candidate_products[product]['identifier']):
                 self.products.append(
-                    (self.candidate_products[product]['identifier'],
-                     self.candidate_products[product]['link_icon'],
-                     self.candidate_products[product]['footprint'])
+                    {'granule': self.candidate_products[product]['identifier'],
+                     'url': self.candidate_products[product]['link_icon'],
+                     'location': self.candidate_products[product]['footprint']}
                     )
-                log.info("{} is unknown to ASF".format(
-                        self.candidate_products[product]['identifier']))
+                log.info(f"{product['identifier']} is unknown to ASF")
 
     def filter_for_subscription_intersection(self):
         for product in self.products:
             if not self.sql.check_hyp3_db_for_intersecting_subscription(product):
-                log.info("{} did not match any Hyp3 subscriptions".format(product[0]))
+                log.info(f"{product['identifier']} did not match any Hyp3 subscriptions")
                 self.products.remove(product)
 
     def insert_products_in_db(self):
         for product in self.products:
-            self.sql.insert_product_in_db(get_product_dict(product))
+            self.sql.insert_product_in_db(product)

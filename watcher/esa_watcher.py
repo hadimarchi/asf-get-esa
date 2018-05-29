@@ -62,9 +62,4 @@ if __name__ == "__main__":
         add_sys_out_handler_to_log()
 
     watcher = watcher.Watcher(os.path.dirname(__file__))
-    watcher.find_candidate_products()
-    watcher.filter_for_unknown_products()
-    watcher.filter_for_subscription_intersection()
-    watcher.insert_products_in_db()
-    watcher.options.set_running('0')
-    log.info("Done")
+    watcher.watch()
