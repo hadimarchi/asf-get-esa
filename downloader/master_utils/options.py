@@ -30,7 +30,10 @@ class Options(options.Main_Options):
 
         self.usernames = json.loads(self.config.get("users", "usernames"))
 
-        self.get_and_set_running()
+        try:
+            self.get_and_set_running()
+        except Exception:
+            raise Exception("Downloader is already running")
 
     def update_max_processes_and_run(self):
         log.info("Reading config file")

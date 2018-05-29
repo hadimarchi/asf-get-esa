@@ -15,10 +15,37 @@ def run_child(granules_username_list):
     return child.download()
 
 
-class Children:
-    def __init__(self, sql, max_processes, usernames):
-        self.sql = sql
+class Base_Children:
+    def __init__(self, max_processes):
         self.max_processes = max_processes
+
+    def get_children(self):
+        self.children = Pool(processes=self.max_processes)
+
+    def supervise_children(self, iterable):
+        try:
+            self.start_children(iterable)
+            self.join_children()
+        except (KeyboardInterrupt, Exception) as e:
+            self.terminate_children()
+            raise e
+
+    def start_children(self, iterable):
+        self.children.map_async(run_child, iterable)
+
+    def join_children(self):
+        self.children.close()
+        self.children.join()
+
+    def terminate_children(self):
+        self.children.terminate()
+        self.children.join()
+
+
+class Children(Base_Children):
+    def __init__(self, sql, max_processes, usernames):
+        super().__init__(max_processes)
+        self.sql = sql
         self.usernames = usernames
         signal.signal(signal.SIGHUP, self.master_death_handler)
 
@@ -28,7 +55,7 @@ class Children:
         sys.exit(0)
 
     def get_children_and_manager(self):
-        self.children = Pool(processes=self.max_processes)
+        self.get_children()
         self.manager = SyncManager()
         self.manager.start(self.set_manager_to_survive_interrupt_and_terminate)
         self.successful_granules_list = self.manager.list()
@@ -43,14 +70,9 @@ class Children:
         self.generate_child_arguments()
         log.debug("granules/username pairs: {}".format([(pair['granules'],
                                                          pair['username']) for pair in self.granules_usernames_list]))
-        try:
-            self.start_children()
-            self.join_children()
-        except (KeyboardInterrupt, Exception) as e:
-            self.terminate_children()
-            raise e
-        else:
-            log.info(f"finished attempting to download {self.product_count} products")
+
+        self.supervise_children(self.granules_usernames_list)
+        log.info(f"finished attempting to download {self.product_count} products")
 
     def generate_child_arguments(self):
         if self.max_processes < self.product_count:
@@ -75,14 +97,3 @@ class Children:
                                          "username": self.usernames[i],
                                          "successful_granules": self.successful_granules_list}
                                         for i in range(self.product_count)]
-
-    def start_children(self):
-        self.children.map_async(run_child, self.granules_usernames_list)
-
-    def join_children(self):
-        self.children.close()
-        self.children.join()
-
-    def terminate_children(self):
-        self.children.terminate()
-        self.children.join()

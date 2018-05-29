@@ -34,7 +34,10 @@ class Options(options.Main_Options):
         self.intersects_hyp3_subs_sql = self.config.get('sql', 'intersects_subs_sql')
         self.insert_sql = self.config.get('sql', 'insert_sql')
 
-        self.get_and_set_running()
+        try:
+            self.get_and_set_running()
+        except Exception as e:
+            raise Exception("Watcher is already running")
 
     def update_last_search_time(self):
         self.config.set('fetch', 'last_search_time', datetime.isoformat(datetime.now()))

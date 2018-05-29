@@ -27,7 +27,7 @@ class Main_Options(Base_Options):
     def get_running(self):
         self.running = int(self.config.get('general', 'running'))
         if self.running:
-            raise Exception("Watcher is already running")
+            raise Exception()
 
     def set_running(self, running):
         self.config.set('general', 'running', running)
