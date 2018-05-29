@@ -1,6 +1,5 @@
 import psycopg2
 
-
 class Hyp3_Archive_Sql:
     def __init__(self, connection_string, check_granules_sql):
         self.connection_string = connection_string
