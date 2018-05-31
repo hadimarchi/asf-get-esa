@@ -20,4 +20,5 @@ RUN: `python3 esa_watcher.py`
 RUN: `python3 esa_watcher.py -h` for more setup information
 
 
-This script checks 
+This script checks ESA sentinel database using the scihub api, and retrieves new SLC and GRD products
+for subscriptions owned by high priority Hyp3 users, if those products are not already available to ASF.
